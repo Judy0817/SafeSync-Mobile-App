@@ -1,9 +1,10 @@
+import 'package:accident_prediction/Screens/homeScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../Reusable/reusable.dart';
 import 'forgotPassword.dart';
-import 'mainPage.dart';
+import 'signUp.dart';
 
 class signIn extends StatefulWidget {
   const signIn({Key? key}) : super(key: key);
@@ -56,7 +57,7 @@ class _signInState extends State<signIn> {
                           email: _emailTextController.text,
                           password: _passwordTextController.text
                       );
-                      Navigator.push(context, MaterialPageRoute(builder: (context)=> const mainPage()));
+                      Navigator.push(context, MaterialPageRoute(builder: (context)=> const HomeScreen()));
                     } on FirebaseAuthException catch (e) {
                       if (e.code == 'user-not-found') {
                         print('No user found for that email.');
