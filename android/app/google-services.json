@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "500807954362",
+    "project_id": "accident-mobile-app",
+    "storage_bucket": "accident-mobile-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:500807954362:android:d3cb4e760fe95305d4f783",
+        "android_client_info": {
+          "package_name": "com.example.accident_prediction"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCAmnhmlRriU82ouxIdDxZ74woeb2vrVI4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

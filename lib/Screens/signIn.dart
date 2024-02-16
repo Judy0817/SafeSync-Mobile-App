@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
 import '../Reusable/reusable.dart';
 import 'forgotPassword.dart';
 import 'mainPage.dart';
@@ -50,7 +50,20 @@ class _signInState extends State<signIn> {
                   reusableTextField("Enter Password", Icons.lock_outline, true, _passwordTextController),
                   const SizedBox(height: 20,),
                   forgotPassword(),
-                  reusableButton(context, "Sign In", (){
+                  reusableButton(context, "Sign In", () async {
+                    try {
+                      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+                          email: _emailTextController.text,
+                          password: _passwordTextController.text
+                      );
+                      Navigator.push(context, MaterialPageRoute(builder: (context)=> const mainPage()));
+                    } on FirebaseAuthException catch (e) {
+                      if (e.code == 'user-not-found') {
+                        print('No user found for that email.');
+                      } else if (e.code == 'wrong-password') {
+                        print('Wrong password provided for that user.');
+                      }
+                    }
                   }),
                   const SizedBox(height: 20,),
                   DontHaveAccount(),

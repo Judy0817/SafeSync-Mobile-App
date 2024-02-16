@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../Reusable/reusable.dart';
@@ -46,7 +47,9 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                   const SizedBox(height: 50,),
                   reusableTextField("Enter Email", Icons.email_outlined, false, _emailTextController),
                   const SizedBox(height: 20,),
-                  reusableButton(context, "SEND", (){
+                  reusableButton(context, "SEND", () async {
+                    await FirebaseAuth.instance
+                        .sendPasswordResetEmail(email: _emailTextController.text);
                   })
                 ],
               ),
