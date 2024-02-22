@@ -95,7 +95,7 @@ Row menuBar(){
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10.0), // Rounded corners
           ),
-          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0), // Button padding
+          padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
         ),
       ),
       Text(
@@ -110,19 +110,19 @@ Row menuBar(){
 }
 
 
-Card swapCard(String topic, String imageUrl) {
+Card swapCard(String topic, Color cardColor, String imageUrl) {
   return Card(
       elevation: 10,
-      color: Colors.transparent,
+      color: cardColor.withOpacity(0.5),
       shape: const RoundedRectangleBorder(
         side: BorderSide(
           color: Colors.white,
         ),
-        borderRadius: BorderRadius.all(Radius.circular(12)),
+        borderRadius: BorderRadius.all(Radius.circular(25)),
       ),
       child: SizedBox(
-          width: 250,
-          height: 200,
+          width: 300,
+          height: 150,
           child: Stack(
             children: [
               Opacity(
@@ -130,13 +130,7 @@ Card swapCard(String topic, String imageUrl) {
                 // Image widget as the background
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.asset(
-                    imageUrl, // Provide the asset image path
-                    width: double.infinity,
-                    height: double.infinity,
-                    fit: BoxFit
-                        .cover, // Adjust the fit based on your image requirements
-                  ),
+
                 ),
               ),
               // Centered text widget on top of the image
@@ -150,6 +144,15 @@ Card swapCard(String topic, String imageUrl) {
                   ),
                 ),
               ),
+              Positioned(
+                top: 40,
+                left: 10,
+                child: CircleAvatar(
+                  radius: 35,
+                  backgroundColor: Colors.white.withOpacity(0.5),
+                  backgroundImage: AssetImage(imageUrl),
+                ),
+              )
             ],
           )
       )

@@ -29,56 +29,35 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: SingleChildScrollView(
           child:Padding(
-            padding: EdgeInsets.fromLTRB(20, 60, 20, 0),
-            child: Container(
-              width: 380,
-              height: double.infinity,
-              child: Column(
-                children: [
-                  menuBar(),
-                  const SizedBox(height: 40,),
-                  Container(
-
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: <Widget>[
-                          CarouselSlider(
-                            options: CarouselOptions(
-                              autoPlay: false,
-                              aspectRatio: 1.0,
-                              enlargeCenterPage: true,
-                            ),
-                            items: [
-                              GestureDetector(
-                                onTap: (){
-                                  Navigator.push(context, MaterialPageRoute(builder: (context) => const signIn(),));
-                                },
-                                child: swapCard("Text 1", "assets/images/logo.png"),
-                              ),
-                              GestureDetector(
-                                onTap: (){
-                                  Navigator.push(context, MaterialPageRoute(builder: (context) => const signIn(),));
-                                },
-                                child: swapCard("Text 2", "assets/images/logo.png"),
-                              ),
-                              GestureDetector(
-                                onTap: (){
-                                  Navigator.push(context, MaterialPageRoute(builder: (context) => const signIn(),));
-                                },
-                                child: swapCard("Text 3", "assets/images/logo.png"),
-                              ),
-
-                            ],
-                          ),
+            padding: EdgeInsets.fromLTRB(10, 60, 10, 0),
+            child: Column(
+              children: [
+                menuBar(),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                  child: SingleChildScrollView(
+                    child: SizedBox(
+                      height: 670,
+                      child: ListView(
+                        scrollDirection: Axis.vertical,
+                        children:[
+                          swapCard("Route Selection",Color(0xFF5712A7), 'assets/images/route.png' ),
+                          SizedBox(height: 10,),
+                          swapCard("Past Info", Color(0x6224A9FF), 'assets/images/pastInfo.png'),
+                          SizedBox(height: 10,),
+                          swapCard("Text 3", Color(0x0D8070FF), 'assets/images/car.png'),
+                          SizedBox(height: 10,),
+                          swapCard("Text 4", Color(0xFF0DE4C7), 'assets/images/twoCar.png'),
+                          SizedBox(height: 10,),
+                          swapCard("Text 5", Color(0xFF5712A7), 'assets/images/route.png'),
+                          SizedBox(height: 10,),
+                          swapCard("Give Feedback", Color(0x6224A9FF), 'assets/images/route.png'),
                         ],
                       ),
                     ),
-                  )
-                ],
-              ),
+                  ),
+                )
+              ],
             ),
           ) ,
         ),
