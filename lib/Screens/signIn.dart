@@ -53,10 +53,10 @@ class _signInState extends State<signIn> {
                   forgotPassword(),
                   reusableButton(context, "Sign In", () async {
                     try {
-                      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-                          email: _emailTextController.text,
-                          password: _passwordTextController.text
-                      );
+                      // final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+                      //     email: _emailTextController.text,
+                      //     password: _passwordTextController.text
+                      // );
                       Navigator.push(context, MaterialPageRoute(builder: (context)=> const HomeScreen()));
                     } on FirebaseAuthException catch (e) {
                       if (e.code == 'user-not-found') {

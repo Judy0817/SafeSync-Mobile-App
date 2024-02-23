@@ -2,6 +2,8 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
+import '../Screens/signIn.dart';
+
 TextField reusableTextField(String text, IconData icon, bool isPasswordType, TextEditingController controller){
   return TextField(
     controller: controller,
@@ -79,7 +81,7 @@ Container reusableButton(BuildContext context, String text, Function() onTap){
   );
 }
 
-Row menuBar(){
+Row menuBar(BuildContext context, ){
   return Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
@@ -103,14 +105,31 @@ Row menuBar(){
         style: TextStyle(
           color: Colors.white.withOpacity(0.9),
           fontWeight: FontWeight.bold,
-          fontSize: 23
-      ),)
+          fontSize: 27
+      ),),
+      GestureDetector(
+        onTap: (){
+          Navigator.push(
+            context,
+              MaterialPageRoute(
+                builder: (context) => const signIn(),
+              )
+          );
+        },
+        child: CircleAvatar(
+            radius: 20,
+            backgroundColor: Colors.white.withOpacity(0.5),
+            backgroundImage: AssetImage('assets/images/mySaree_Up.jpg'),
+
+        ),
+      )
+
     ],
   );
 }
 
 
-Card swapCard(String topic, Color cardColor, String imageUrl) {
+Card swapCard(String topic,String topic2, Color cardColor, String imageUrl) {
   return Card(
       elevation: 10,
       color: cardColor.withOpacity(0.5),
@@ -134,13 +153,27 @@ Card swapCard(String topic, Color cardColor, String imageUrl) {
                 ),
               ),
               // Centered text widget on top of the image
-              Center(
+              Positioned(
+                top: 20,
+                right: 20,
                 child: Text(
                   topic,
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 20,
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 110,
+                right: 10,
+                child: Text(
+                  topic2,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
                   ),
                 ),
               ),
