@@ -81,7 +81,7 @@ Container reusableButton(BuildContext context, String text, Function() onTap){
   );
 }
 
-Row menuBar(BuildContext context, ){
+Row menuBar(BuildContext context, String text ){
   return Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
@@ -101,7 +101,7 @@ Row menuBar(BuildContext context, ){
         ),
       ),
       Text(
-        "SafeSync",
+        text,
         style: TextStyle(
           color: Colors.white.withOpacity(0.9),
           fontWeight: FontWeight.bold,
