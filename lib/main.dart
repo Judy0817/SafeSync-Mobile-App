@@ -1,5 +1,6 @@
+import 'package:accident_prediction/Screens/homeScreen.dart';
 import 'package:flutter/material.dart';
-import 'Screens/homeScreen.dart';
+import 'Screens/Dashboard/top20.dart';
 import 'Screens/signIn.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -22,7 +23,7 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
       routes: {
-        '/signIn': (context) => HomeScreen(),
+        '/top20': (context) => CityAccidentsChart(),
         // '/signIn': (context) => SignInScreen(), // Example route to SignInScreen
         // '/pastInfo': (context) => PastInfoPage(),
         // '/dashboardAnalysis': (context) => DashboardAnalysisPage(),

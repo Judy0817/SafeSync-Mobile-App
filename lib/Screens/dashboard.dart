@@ -12,7 +12,7 @@ class Dashboard extends StatefulWidget {
 
 class _DashboardState extends State<Dashboard> {
   final List<Map<String, dynamic>> items = [
-    {'title': 'Route Selection', 'subtitle': 'Select the best route for your journey', 'route': '/signIn'},
+    {'title': 'Top 20 Cities', 'subtitle': 'Select the best route for your journey', 'route': '/top20'},
     {'title': 'Past Info', 'subtitle': 'Access your past information and data', 'route': '/pastInfo'},
     {'title': 'Dashboard Analysis', 'subtitle': 'Analyze your data effectively', 'route': '/dashboardAnalysis'},
     {'title': 'Safety Tips', 'subtitle': 'Get the best safety tips for your trips', 'route': '/safetyTips'},
@@ -67,7 +67,7 @@ class _DashboardState extends State<Dashboard> {
                       Padding(
                         padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
                         child: SizedBox(
-                          height: 700,
+                          height: 1500,
                           child: ListView.builder(
                             itemCount: items.length,
                             itemBuilder: (context, index) {
