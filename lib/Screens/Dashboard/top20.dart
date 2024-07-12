@@ -21,7 +21,7 @@ class _CityAccidentsChartState extends State<CityAccidentsChart> {
   }
 
   Future<void> fetchData() async {
-    final response = await http.get(Uri.parse('http://192.168.145.221:8080/top_city'));
+    final response = await http.get(Uri.parse('http://192.168.7.221:8080/top_city'));
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);

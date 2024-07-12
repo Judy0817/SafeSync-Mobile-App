@@ -19,7 +19,7 @@ class _RoadFeaturesState extends State<RoadFeatures> {
   }
 
   Future<void> fetchData() async {
-    final response = await http.get(Uri.parse('http://192.168.145.221:8080/road_features'));
+    final response = await http.get(Uri.parse('http://192.168.7.221:8080/road_features'));
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);

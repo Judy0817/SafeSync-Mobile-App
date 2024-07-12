@@ -19,7 +19,7 @@ class _WeatherConditionsState extends State<WeatherConditions> {
   }
 
   Future<void> fetchData() async {
-    final response = await http.get(Uri.parse('http://192.168.145.221:8080/weather_conditions'));
+    final response = await http.get(Uri.parse('http://192.168.7.221:8080/weather_conditions'));
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);
@@ -65,23 +65,61 @@ class _WeatherConditionsState extends State<WeatherConditions> {
             ],
           ),
         ),
-        child: SingleChildScrollView(
-          child: Column(
-            children: chartData.map((data) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10.0),
-                child: SizedBox(
-                  height: 300,
-                  child: CustomDoughnutChart(
-                    data: data,
-                  ),
+        child: Center(
+          child: Container(
+            height: 300,
+            width: MediaQuery.of(context).size.width * 0.9,
+            child: SfCircularChart(
+              title: ChartTitle(
+                text: 'Weather Conditions',
+                textStyle: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
                 ),
-              );
-            }).toList(),
+              ),
+              legend: Legend(
+                isVisible: true,
+                overflowMode: LegendItemOverflowMode.wrap,
+                textStyle: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              tooltipBehavior: TooltipBehavior(enable: true),
+              series: <CircularSeries<_WeatherData, String>>[
+                DoughnutSeries<_WeatherData, String>(
+                  dataSource: chartData,
+                  xValueMapper: (_WeatherData data, _) => data.condition,
+                  yValueMapper: (_WeatherData data, _) => data.value,
+                  dataLabelMapper: (_WeatherData data, _) => '${data.percentage.toStringAsFixed(1)}%',
+                  dataLabelSettings: DataLabelSettings(isVisible: true),
+                  pointColorMapper: (_WeatherData data, _) => _getColor(data.condition),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  Color _getColor(String condition) {
+    switch (condition) {
+      case 'Fair':
+        return Colors.green;
+      case 'Mostly Cloudy':
+        return Colors.blue;
+      case 'Cloudy':
+        return Colors.grey;
+      case 'Clear':
+        return Colors.yellow;
+      case 'Partly Cloudy':
+        return Colors.orange;
+      case 'Overcast':
+        return Colors.black;
+      default:
+        return Colors.purple; // Default color for "Others"
+    }
   }
 }
 
@@ -91,52 +129,6 @@ class _WeatherData {
   final double percentage;
 
   _WeatherData(this.condition, this.value, this.percentage);
-}
-
-class CustomDoughnutChart extends StatelessWidget {
-  final _WeatherData data;
-
-  CustomDoughnutChart({required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    return SfCircularChart(
-      title: ChartTitle(
-        text: '${data.condition} Condition',
-        textStyle: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      legend: Legend(
-        isVisible: true,
-        overflowMode: LegendItemOverflowMode.wrap,
-        textStyle: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      tooltipBehavior: TooltipBehavior(enable: true),
-      series: <CircularSeries<_WeatherData, String>>[
-        DoughnutSeries<_WeatherData, String>(
-          dataSource: [data],
-          xValueMapper: (_WeatherData data, _) => data.condition,
-          yValueMapper: (_WeatherData data, _) => data.percentage,
-          dataLabelMapper: (_WeatherData data, _) => '${data.percentage.toStringAsFixed(1)}%', // Display percentage as label
-          pointColorMapper: (_WeatherData data, _) => _getColor(data.percentage), // Assign color based on percentage
-          dataLabelSettings: DataLabelSettings(isVisible: true),
-        ),
-      ],
-    );
-  }
-
-  Color _getColor(double percentage) {
-    if (percentage >= 70) {
-      return Colors.black; // Use black color for 70% and above
-    } else {
-      return Colors.green; // Use green color for below 70%
-    }
-  }
 }
 
 void main() {
