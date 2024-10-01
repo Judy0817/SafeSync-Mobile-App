@@ -1,0 +1,39 @@
+{
+  "cities": [
+    {
+      "city_name": "San Francisco",
+      "temperature": 68,
+      "pressure": 1015,
+      "wind_direction": "NW",
+      "weather_condition": "Clear"
+    },
+    {
+      "city_name": "New York",
+      "temperature": 75,
+      "pressure": 1010,
+      "wind_direction": "NE",
+      "weather_condition": "Partly Cloudy"
+    },
+    {
+      "city_name": "Los Angeles",
+      "temperature": 85,
+      "pressure": 1008,
+      "wind_direction": "W",
+      "weather_condition": "Sunny"
+    },
+    {
+      "city_name": "Chicago",
+      "temperature": 60,
+      "pressure": 1020,
+      "wind_direction": "SW",
+      "weather_condition": "Rainy"
+    },
+    {
+      "city_name": "Miami",
+      "temperature": 90,
+      "pressure": 1012,
+      "wind_direction": "E",
+      "weather_condition": "Thunderstorms"
+    }
+  ]
+}

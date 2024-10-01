@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+
+import 'Dashboard/route.dart';
 
 class MapPage extends StatefulWidget {
   @override
@@ -7,72 +8,68 @@ class MapPage extends StatefulWidget {
 }
 
 class _MapPageState extends State<MapPage> {
-  GoogleMapController? _controller;
-  Marker? _startMarker;
-  Marker? _endMarker;
-  LatLng? _startLatLng;
-  LatLng? _endLatLng;
+  TextEditingController _startController = TextEditingController();
+  TextEditingController _endController = TextEditingController();
 
-  void _onMapCreated(GoogleMapController controller) {
-    _controller = controller;
-  }
+  String? _startPoint;
+  String? _endPoint;
 
-  void _onTap(LatLng latLng) {
-    setState(() {
-      if (_startLatLng == null) {
-        _startLatLng = latLng;
-        _startMarker = Marker(
-          markerId: MarkerId('start'),
-          position: _startLatLng!,
-          infoWindow: InfoWindow(title: 'Start Point'),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-        );
-      } else if (_endLatLng == null) {
-        _endLatLng = latLng;
-        _endMarker = Marker(
-          markerId: MarkerId('end'),
-          position: _endLatLng!,
-          infoWindow: InfoWindow(title: 'End Point'),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-        );
-      } else {
-        // Reset markers
-        _startLatLng = latLng;
-        _endLatLng = null;
-        _startMarker = Marker(
-          markerId: MarkerId('start'),
-          position: _startLatLng!,
-          infoWindow: InfoWindow(title: 'Start Point'),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-        );
-        _endMarker = null;
-      }
-    });
+  void _onSubmit() {
+    String startPoint = _startController.text;
+    String endPoint = _endController.text;
+
+    // Navigate to the ResultPage and pass the start and end points
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ResultPage(startPoint: startPoint, endPoint: endPoint),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Select Start and Destination'),
+        title: Text('Enter Start and End Points'),
       ),
-      body: GoogleMap(
-        onMapCreated: _onMapCreated,
-        initialCameraPosition: CameraPosition(
-          target: LatLng(37.77483, -122.41942), // Initial position (San Francisco)
-          zoom: 12,
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextField(
+              controller: _startController,
+              decoration: InputDecoration(
+                labelText: 'Start Point',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            SizedBox(height: 16),
+            TextField(
+              controller: _endController,
+              decoration: InputDecoration(
+                labelText: 'End Point',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _onSubmit,
+              child: Text('Enter'),
+            ),
+            SizedBox(height: 16),
+          ],
         ),
-        markers: _createMarkers(),
-        onTap: _onTap,
       ),
     );
   }
 
-  Set<Marker> _createMarkers() {
-    final markers = <Marker>{};
-    if (_startMarker != null) markers.add(_startMarker!);
-    if (_endMarker != null) markers.add(_endMarker!);
-    return markers;
+  @override
+  void dispose() {
+    _startController.dispose();
+    _endController.dispose();
+    super.dispose();
   }
 }
 
