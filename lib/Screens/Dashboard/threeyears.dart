@@ -9,26 +9,23 @@ class ThreeYearsAccidents extends StatefulWidget {
 }
 
 class _ThreeYearsAccidentsState extends State<ThreeYearsAccidents> {
-  List<_AccidentData> chartData2019 = [];
-  List<_AccidentData> chartData2020 = [];
-  List<_AccidentData> chartData2021 = [];
+  List<_AccidentData> chartData = [];
   bool isLoading = true;
+  int selectedYear = 2019;
 
   @override
   void initState() {
     super.initState();
-    fetchAllData();
-  }
-
-  Future<void> fetchAllData() async {
-    await Future.wait([fetchData(2019), fetchData(2020), fetchData(2021)]);
-    setState(() {
-      isLoading = false;
-    });
+    fetchData(selectedYear);
   }
 
   Future<void> fetchData(int year) async {
-    final response = await http.get(Uri.parse('http://192.168.7.221:8080/accidents_$year'));
+    setState(() {
+      isLoading = true;
+      chartData = []; // Clear previous data
+    });
+
+    final response = await http.get(Uri.parse('http://192.168.187.221:8080/accidents_$year'));
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);
@@ -38,19 +35,10 @@ class _ThreeYearsAccidentsState extends State<ThreeYearsAccidents> {
         final months = List<String>.from(data['labels']);
 
         setState(() {
-          if (year == 2019) {
-            chartData2019 = List.generate(months.length, (index) {
-              return _AccidentData(months[index], accidents[index]);
-            });
-          } else if (year == 2020) {
-            chartData2020 = List.generate(months.length, (index) {
-              return _AccidentData(months[index], accidents[index]);
-            });
-          } else if (year == 2021) {
-            chartData2021 = List.generate(months.length, (index) {
-              return _AccidentData(months[index], accidents[index]);
-            });
-          }
+          chartData = List.generate(months.length, (index) {
+            return _AccidentData(months[index], accidents[index]);
+          });
+          isLoading = false;
         });
       } else {
         throw Exception('Failed to load data: Unexpected response format');
@@ -130,6 +118,10 @@ class _ThreeYearsAccidentsState extends State<ThreeYearsAccidents> {
     return isLoading
         ? Center(child: CircularProgressIndicator())
         : Scaffold(
+      appBar: AppBar(
+        title: Text("Accidents Data"),
+        backgroundColor: Colors.teal,
+      ),
       body: Container(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
@@ -146,17 +138,38 @@ class _ThreeYearsAccidentsState extends State<ThreeYearsAccidents> {
         child: SingleChildScrollView(
           child: Column(
             children: [
+              SizedBox(height: 20),
               Padding(
-                padding: EdgeInsets.only(top: 50),
-                child: buildChart('Accidents in 2019', chartData2019),
+                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                child: DropdownButton<int>(
+                  value: selectedYear,
+                  dropdownColor: Colors.teal,
+                  style: TextStyle(color: Colors.white),
+                  items: [2019, 2020, 2021, 2022, 2023]
+                      .map((year) => DropdownMenuItem<int>(
+                    value: year,
+                    child: Text(
+                      '$year',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ))
+                      .toList(),
+                  onChanged: (int? newYear) {
+                    if (newYear != null) {
+                      setState(() {
+                        selectedYear = newYear;
+                      });
+                      fetchData(selectedYear);
+                    }
+                  },
+                ),
               ),
               Padding(
                 padding: EdgeInsets.only(top: 20),
-                child: buildChart('Accidents in 2020', chartData2020),
-              ),
-              Padding(
-                padding: EdgeInsets.only(top: 20),
-                child: buildChart('Accidents in 2021', chartData2021),
+                child: buildChart('Accidents in $selectedYear', chartData),
               ),
             ],
           ),

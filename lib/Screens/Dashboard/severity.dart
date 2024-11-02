@@ -19,7 +19,7 @@ class _SeverityDistributionState extends State<SeverityDistribution> {
   }
 
   Future<void> fetchData() async {
-    final response = await http.get(Uri.parse('http://192.168.7.221:8080/severity_distribution'));
+    final response = await http.get(Uri.parse('http://192.168.187.221:8080/severity_distribution'));
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);
@@ -53,6 +53,10 @@ class _SeverityDistributionState extends State<SeverityDistribution> {
     return isLoading
         ? Center(child: CircularProgressIndicator())
         : Scaffold(
+      appBar: AppBar(
+        title: Text('Severity Distribution'),
+        backgroundColor: Color(0xFF5712A7),
+      ),
       body: Container(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,

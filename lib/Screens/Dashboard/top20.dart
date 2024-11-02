@@ -13,26 +13,35 @@ class CityAccidentsChart extends StatefulWidget {
 class _CityAccidentsChartState extends State<CityAccidentsChart> {
   List<_CityAccidentsData> chartData = [];
   bool isLoading = true;
+  String selectedOption = 'City'; // Default selection
 
   @override
   void initState() {
     super.initState();
-    fetchData();
+    fetchData(); // Fetch initial data
   }
 
   Future<void> fetchData() async {
-    final response = await http.get(Uri.parse('http://192.168.7.221:8080/top_city'));
+    setState(() {
+      isLoading = true;
+    });
+
+    final uri = selectedOption == 'City'
+        ? Uri.parse('http://192.168.187.221:8080/top_city')
+        : Uri.parse('http://192.168.187.221:8080/top_street');
+
+    final response = await http.get(uri);
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);
 
       if (data['data'] is List && data['labels'] is List) {
         final accidents = List<int>.from(data['data']);
-        final cityLabels = List<String>.from(data['labels']);
+        final labels = List<String>.from(data['labels']);
 
         setState(() {
-          chartData = List.generate(cityLabels.length, (index) {
-            return _CityAccidentsData(cityLabels[index], accidents[index]);
+          chartData = List.generate(labels.length, (index) {
+            return _CityAccidentsData(labels[index], accidents[index]);
           });
           isLoading = false;
         });
@@ -46,81 +55,109 @@ class _CityAccidentsChartState extends State<CityAccidentsChart> {
 
   @override
   Widget build(BuildContext context) {
-    return isLoading
-        ? Center(child: CircularProgressIndicator())
-        : Scaffold(
-          body: Container(
-            width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFF0DE4C7),
-                  Color(0xFF5712A7),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Top 20 Accident Chart'),
+        backgroundColor: Color(0xFF5712A7),
+      ),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : Container(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF0DE4C7),
+              Color(0xFF5712A7),
+            ],
+          ),
+        ),
+        child: Stack(
+          children: [
+            Padding(
+              padding: EdgeInsets.only(top: 20),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: DropdownButton<String>(
+                      value: selectedOption,
+                      items: ['City', 'Street'].map((String option) {
+                        return DropdownMenuItem<String>(
+                          value: option,
+                          child: Text(option),
+                        );
+                      }).toList(),
+                      onChanged: (newValue) {
+                        setState(() {
+                          selectedOption = newValue!;
+                          fetchData(); // Fetch data based on selection
+                        });
+                      },
+                    ),
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: SizedBox(
+                        height: 500, // Set the desired height for the chart
+                        child: SfCartesianChart(
+                          backgroundColor: Colors.transparent,
+                          plotAreaBackgroundColor: Colors.transparent,
+                          margin: EdgeInsets.symmetric(vertical: 20),
+                          primaryXAxis: CategoryAxis(
+                            majorGridLines: MajorGridLines(width: 0),
+                            labelStyle: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          primaryYAxis: NumericAxis(
+                            majorGridLines: MajorGridLines(width: 0),
+                            labelStyle: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          title: ChartTitle(
+                            text: selectedOption == 'City'
+                                ? 'Top 20 Cities'
+                                : 'Top 20 Streets',
+                            textStyle: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          legend: Legend(isVisible: false),
+                          tooltipBehavior: TooltipBehavior(enable: true),
+                          series: <ChartSeries<_CityAccidentsData, String>>[
+                            BarSeries<_CityAccidentsData, String>(
+                              dataSource: chartData,
+                              xValueMapper: (_CityAccidentsData data, _) => data.city,
+                              yValueMapper: (_CityAccidentsData data, _) => data.accidents,
+                              dataLabelSettings: DataLabelSettings(
+                                isVisible: true,
+                                textStyle: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              color: Color.fromRGBO(21, 72, 103, 1.0),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
-      child: Stack(
-        children: [
-          Padding(
-            padding: EdgeInsets.only(top: 50),
-            child: SingleChildScrollView(
-              child: SizedBox(
-                height: 500, // Set the desired height for the chart
-                child: SfCartesianChart(
-                  backgroundColor: Colors.transparent, // Remove black background color
-                  plotAreaBackgroundColor: Colors.transparent, // Remove plot area background color
-                  margin: EdgeInsets.symmetric(vertical: 20), // Add margin for additional space
-                  primaryXAxis: CategoryAxis(
-                    majorGridLines: MajorGridLines(width: 0), // Remove vertical grid lines
-                    labelStyle: TextStyle(
-                      color: Colors.white, // Set the x-axis labels to white
-                      fontWeight: FontWeight.bold, // Set the x-axis labels to bold
-                    ),
-                  ),
-                  primaryYAxis: NumericAxis(
-                    majorGridLines: MajorGridLines(width: 0), // Remove horizontal grid lines
-                    labelStyle: TextStyle(
-                      color: Colors.white, // Set the y-axis labels to white
-                      fontWeight: FontWeight.bold, // Set the y-axis labels to bold
-                    ),
-                  ),
-                  title: ChartTitle(
-                    text: 'Top 20 Cities',
-                    textStyle: TextStyle(
-                      color: Colors.white, // Set the title to white
-                      fontWeight: FontWeight.bold, // Set the title to bold
-                    ),
-                  ),
-                  legend: Legend(isVisible: false),
-                  tooltipBehavior: TooltipBehavior(enable: true),
-                  series: <ChartSeries<_CityAccidentsData, String>>[
-                    BarSeries<_CityAccidentsData, String>(
-                      dataSource: chartData,
-                      xValueMapper: (_CityAccidentsData data, _) => data.city,
-                      yValueMapper: (_CityAccidentsData data, _) => data.accidents,
-                      dataLabelSettings: DataLabelSettings(
-                        isVisible: true,
-                        textStyle: TextStyle(
-                          color: Colors.white, // Set the data labels to white
-                          fontWeight: FontWeight.bold, // Set the data labels to bold
-                        ),
-                      ),
-                      color: Color.fromRGBO(21, 72, 103, 1.0) // Set the bar color to dark blue
-                    )
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
-
-
-          ),
-        );
+    );
   }
 }
 

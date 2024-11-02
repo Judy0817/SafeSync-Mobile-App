@@ -2,6 +2,7 @@ import 'package:accident_prediction/Screens/homeScreen.dart';
 import 'package:flutter/material.dart';
 import 'Screens/Dashboard/road_features.dart';
 import 'Screens/Dashboard/severity.dart';
+import 'Screens/Dashboard/streets_percity.dart';
 import 'Screens/Dashboard/threeyears.dart';
 import 'Screens/Dashboard/top20.dart';
 import 'Screens/Dashboard/weather.dart';
@@ -32,7 +33,7 @@ class MyApp extends StatelessWidget {
         '/severity': (context) => SeverityDistribution(),
         '/3years': (context) => ThreeYearsAccidents(),
         '/weather': (context) => WeatherConditions(),
-        // '/profileSettings': (context) => ProfileSettingsPage(),
+        '/streets_percity': (context) => TopStreetsPerCity(),
         // '/notifications': (context) => NotificationsPage(),
         // '/helpSupport': (context) => HelpSupportPage(),
         // '/feedback': (context) => FeedbackPage(),

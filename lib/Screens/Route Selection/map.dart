@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'Dashboard/route.dart';
+import 'route.dart';
 
 class MapPage extends StatefulWidget {
   @override

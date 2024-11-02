@@ -12,12 +12,12 @@ class Dashboard extends StatefulWidget {
 
 class _DashboardState extends State<Dashboard> {
   final List<Map<String, dynamic>> items = [
-    {'title': 'Top 20 Cities', 'subtitle': 'Select the best route for your journey', 'route': '/top20'},
+    {'title': 'Top 20 Cities / Streets', 'subtitle': 'Select the best route for your journey', 'route': '/top20'},
     {'title': 'Road Features', 'subtitle': 'Access your past information and data', 'route': '/road_features'},
     {'title': 'Severity Distribution', 'subtitle': 'Analyze your data effectively', 'route': '/severity'},
     {'title': 'Accidents In Past 3 Years', 'subtitle': 'Get the best safety tips for your trips', 'route': '/3years'},
     {'title': 'Weather Conditions', 'subtitle': 'Manage your profile settings', 'route': '/weather'},
-    {'title': 'Notifications', 'subtitle': 'View your notifications', 'route': '/notifications'},
+    {'title': 'City and Street', 'subtitle': 'View your notifications', 'route': '/streets_percity'},
     {'title': 'Help & Support', 'subtitle': 'Get help and support for the app', 'route': '/helpSupport'},
     {'title': 'Feedback', 'subtitle': 'Provide feedback about the app', 'route': '/feedback'},
     {'title': 'App Info', 'subtitle': 'Learn more about the app', 'route': '/appInfo'},

@@ -19,7 +19,7 @@ class _RoadFeaturesState extends State<RoadFeatures> {
   }
 
   Future<void> fetchData() async {
-    final response = await http.get(Uri.parse('http://192.168.7.221:8080/road_features'));
+    final response = await http.get(Uri.parse('http://192.168.187.221:8080/road_features'));
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);
@@ -49,6 +49,10 @@ class _RoadFeaturesState extends State<RoadFeatures> {
     return isLoading
         ? Center(child: CircularProgressIndicator())
         : Scaffold(
+      appBar: AppBar(
+        title: Text('Road Features'),
+        backgroundColor: Color(0xFF5712A7),
+      ),
       body: Container(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,

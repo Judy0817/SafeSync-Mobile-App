@@ -19,7 +19,8 @@ class _WeatherConditionsState extends State<WeatherConditions> {
   }
 
   Future<void> fetchData() async {
-    final response = await http.get(Uri.parse('http://192.168.7.221:8080/weather_conditions'));
+    final response = await http.get(Uri.parse('http://192.168.187.221:8080/weather_conditions'));
+    // to get this url run the ipconfig in the terminal and then copy ipv4 address
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);

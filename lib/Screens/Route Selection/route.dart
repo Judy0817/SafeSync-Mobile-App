@@ -4,7 +4,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import '../../testing/city.dart';
+import 'city.dart';
 
 class ResultPage extends StatefulWidget {
   final String startPoint;
