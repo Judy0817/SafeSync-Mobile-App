@@ -12,16 +12,16 @@ class Dashboard extends StatefulWidget {
 
 class _DashboardState extends State<Dashboard> {
   final List<Map<String, dynamic>> items = [
-    {'title': 'Top 20 Cities / Streets', 'subtitle': 'Select the best route for your journey', 'route': '/top20'},
-    {'title': 'Road Features', 'subtitle': 'Access your past information and data', 'route': '/road_features'},
-    {'title': 'Severity Distribution', 'subtitle': 'Analyze your data effectively', 'route': '/severity'},
-    {'title': 'Accidents In Past 5 Years', 'subtitle': 'Get the best safety tips for your trips', 'route': '/3years'},
-    {'title': 'Weather Conditions', 'subtitle': 'Manage your profile settings', 'route': '/weather'},
-    {'title': 'City and Street', 'subtitle': 'View your notifications', 'route': '/streets_percity'},
-    {'title': 'Total Accidents Each Year', 'subtitle': 'Get help and support for the app', 'route': '/total_accident'},
-    {'title': 'Monthly Accidents Per Year', 'subtitle': 'Provide feedback about the app', 'route': '/monthly_accidents'},
-    {'title': 'App Info', 'subtitle': 'Learn more about the app', 'route': '/appInfo'},
-    {'title': 'Logout', 'subtitle': 'Sign out of your account', 'route': '/logout'},
+    {'title': 'Top 20 Cities / Streets', 'subtitle': 'View the number of accidents in top 20 cities and streets', 'route': '/top20'},
+    {'title': 'Road Features', 'subtitle': 'See how specific road features impact accident risk', 'route': '/road_features'},
+    {'title': 'Severity Distribution', 'subtitle': 'View accident severity levels across all accidents', 'route': '/severity'},
+    {'title': 'Accidents In Past 5 Years', 'subtitle': 'Explore No of accident data from the past five years', 'route': '/3years'},
+    {'title': 'Weather Conditions', 'subtitle': 'Examine weather patterns linked to accidents', 'route': '/weather'},
+    {'title': 'City and Street', 'subtitle': 'Select a city to view detailed accident data in streets', 'route': '/streets_percity'},
+    {'title': 'Total Accidents Each Year', 'subtitle': 'View yearly accident totals and trends', 'route': '/total_accident'},
+    {'title': 'Average Weather Conditions for Each Severity', 'subtitle': 'Analyze weather conditions by accident severity', 'route': '/avg_weather_severity'},
+    {'title': 'Average Wind Speed By Time of Day', 'subtitle': 'View wind speeds by time of day and severity level', 'route': '/average_wind_speed'},
+    {'title': 'Weather Features Top 10 values', 'subtitle': 'Sign out of your account securely', 'route': '/weather_feature_top10'},
   ];
 
   void _navigateToPage(BuildContext context, String route) {
@@ -61,45 +61,42 @@ class _DashboardState extends State<Dashboard> {
               padding: EdgeInsets.only(top: 90), // Adjust this value based on the height of your menu bar
               child: SingleChildScrollView(
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+                  padding: EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                        child: SizedBox(
-                          height: 1500,
-                          child: ListView.builder(
-                            itemCount: items.length,
-                            itemBuilder: (context, index) {
-                              return ListTile(
-                                leading: IconTheme(
-                                  data: IconThemeData(
-                                    color: Colors.black, // Change the color if needed
-                                    size: 30, // Change the size if needed
-                                  ),
-                                  child: Icon(Icons.auto_graph_rounded),
-                                ),
-                                title: Text(
-                                  items[index]['title']!,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                subtitle: Text(items[index]['subtitle']!),
-                                trailing: IconTheme(
-                                  data: IconThemeData(
-                                    color: Colors.black, // Change the color if needed
-                                    size: 30, // Change the size if needed
-                                  ),
-                                  child: Icon(Icons.arrow_forward),
-                                ),
-                                onTap: () {
-                                  _navigateToPage(context, items[index]['route']);
-                                },
-                              );
+                      SizedBox(height: 20),
+                      ListView.builder(
+                        shrinkWrap: true, // Allows ListView to take only the space it needs
+                        physics: NeverScrollableScrollPhysics(), // Prevents inner scrolling, allowing parent scroll
+                        itemCount: items.length,
+                        itemBuilder: (context, index) {
+                          return ListTile(
+                            leading: IconTheme(
+                              data: IconThemeData(
+                                color: Colors.black, // Change the color if needed
+                                size: 30, // Change the size if needed
+                              ),
+                              child: Icon(Icons.auto_graph_rounded),
+                            ),
+                            title: Text(
+                              items[index]['title']!,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            subtitle: Text(items[index]['subtitle']!),
+                            trailing: IconTheme(
+                              data: IconThemeData(
+                                color: Colors.black, // Change the color if needed
+                                size: 30, // Change the size if needed
+                              ),
+                              child: Icon(Icons.arrow_forward),
+                            ),
+                            onTap: () {
+                              _navigateToPage(context, items[index]['route']);
                             },
-                          ),
-                        ),
+                          );
+                        },
                       ),
                     ],
                   ),
