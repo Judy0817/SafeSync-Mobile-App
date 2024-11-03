@@ -5,6 +5,7 @@ import 'Screens/Dashboard/severity.dart';
 import 'Screens/Dashboard/streets_percity.dart';
 import 'Screens/Dashboard/threeyears.dart';
 import 'Screens/Dashboard/top20.dart';
+import 'Screens/Dashboard/total_accident.dart';
 import 'Screens/Dashboard/weather.dart';
 import 'Screens/signIn.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -34,8 +35,8 @@ class MyApp extends StatelessWidget {
         '/3years': (context) => ThreeYearsAccidents(),
         '/weather': (context) => WeatherConditions(),
         '/streets_percity': (context) => TopStreetsPerCity(),
-        // '/notifications': (context) => NotificationsPage(),
-        // '/helpSupport': (context) => HelpSupportPage(),
+        '/total_accident': (context) => TotalAccidentsPerYear(),
+        // '/monthly_accidents': (context) => MonthlyAccidents(),
         // '/feedback': (context) => FeedbackPage(),
         // '/appInfo': (context) => AppInfoPage(),
         // '/logout': (context) => LogoutPage(),

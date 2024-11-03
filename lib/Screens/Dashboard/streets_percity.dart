@@ -9,18 +9,18 @@ class TopStreetsPerCity extends StatefulWidget {
 }
 
 class _TopStreetsPerCityState extends State<TopStreetsPerCity> {
-  List<String> cities = []; // List to hold city names
-  List<String> filteredCities = []; // List for filtered city names based on search
+  List<String> cities = [];
   List<_StreetAccidentData> chartData = [];
   bool isLoadingCities = true;
   bool isLoadingStreets = true;
-  String selectedCity = '';
-  String searchQuery = '';
+  String selectedCity = 'Abbeville';
+  String enteredCity = '';
 
   @override
   void initState() {
     super.initState();
     fetchCities();
+    fetchStreetsData(selectedCity); // Load default data for 'Abbeville'
   }
 
   Future<void> fetchCities() async {
@@ -29,15 +29,21 @@ class _TopStreetsPerCityState extends State<TopStreetsPerCity> {
     });
 
     try {
-      final response = await http.get(Uri.parse('http://192.168.187.221:8080/get_cities')); // Replace with your actual API endpoint for cities
+      final response = await http.get(Uri.parse('http://192.168.187.221:8080/get_cities'));
 
       if (response.statusCode == 200) {
-        final List<dynamic> cityData = json.decode(response.body);
-        setState(() {
-          cities = List<String>.from(cityData);
-          filteredCities = List<String>.from(cityData);
-          isLoadingCities = false;
-        });
+        print("Response body: ${response.body}"); // Log the response body
+        final Map<String, dynamic> cityData = json.decode(response.body);
+
+        // Check if 'cities' is a key in the map and extract it
+        if (cityData.containsKey('cities') && cityData['cities'] is List) {
+          setState(() {
+            cities = List<String>.from(cityData['cities']);
+            isLoadingCities = false;
+          });
+        } else {
+          throw Exception('Failed to load cities: Unexpected response format');
+        }
       } else {
         throw Exception('Failed to load cities: ${response.statusCode}');
       }
@@ -46,13 +52,17 @@ class _TopStreetsPerCityState extends State<TopStreetsPerCity> {
         isLoadingCities = false;
       });
       print("Error fetching cities: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error fetching cities: $e")),
+      );
     }
   }
+
 
   Future<void> fetchStreetsData(String city) async {
     setState(() {
       isLoadingStreets = true;
-      chartData = []; // Clear previous data
+      chartData = [];
     });
 
     try {
@@ -60,7 +70,7 @@ class _TopStreetsPerCityState extends State<TopStreetsPerCity> {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
-        print("Response Data: $data"); // Debugging line
+        print("Response data: $data"); // Debugging line
 
         if (data['data'] is List && data['labels'] is List) {
           final accidents = List<int>.from(data['data']);
@@ -83,17 +93,38 @@ class _TopStreetsPerCityState extends State<TopStreetsPerCity> {
         isLoadingStreets = false;
       });
       print("Error fetching streets data: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error fetching streets data: $e"))
+      );
     }
   }
 
-  void filterCities(String query) {
-    setState(() {
-      searchQuery = query;
-      filteredCities = cities
-          .where((city) => city.toLowerCase().contains(query.toLowerCase()))
-          .toList();
-    });
+  void onSearchSubmit() {
+    // Trim the entered city to remove leading/trailing spaces
+    final normalizedEnteredCity = enteredCity.trim().toLowerCase();
+
+    // Find the matched city in a case-insensitive manner
+    final matchedCity = cities.firstWhere(
+          (city) => city.toLowerCase() == normalizedEnteredCity,
+      orElse: () => '',
+    );
+
+    if (matchedCity.isNotEmpty) {
+      setState(() {
+        selectedCity = matchedCity;
+      });
+      fetchStreetsData(matchedCity); // Fetch data for the selected city
+    } else {
+      setState(() {
+        chartData = []; // Clear the chart data if the city is not found
+      });
+      print("City not found in the list.");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("City not found in the list.")),
+      );
+    }
   }
+
 
   Widget buildChart(String city, List<_StreetAccidentData> data) {
     if (data.isEmpty) {
@@ -148,7 +179,6 @@ class _TopStreetsPerCityState extends State<TopStreetsPerCity> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -177,43 +207,24 @@ class _TopStreetsPerCityState extends State<TopStreetsPerCity> {
                   ? Center(child: CircularProgressIndicator())
                   : Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0),
-                child: Column(
+                child: Row(
                   children: [
-                    TextField(
-                      decoration: InputDecoration(
-                        hintText: "Search City",
-                        fillColor: Colors.white,
-                        filled: true,
-                        border: OutlineInputBorder(),
+                    Expanded(
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: "Search City",
+                          fillColor: Colors.white,
+                          filled: true,
+                          border: OutlineInputBorder(),
+                        ),
+                        onChanged: (value) {
+                          enteredCity = value;
+                        },
                       ),
-                      onChanged: filterCities,
                     ),
-                    SizedBox(height: 10),
-                    DropdownButton<String>(
-                      hint: Text("Select City"),
-                      value: selectedCity.isEmpty ? null : selectedCity,
-                      dropdownColor: Colors.teal,
-                      style: TextStyle(color: Colors.white),
-                      items: filteredCities.map((city) {
-                        return DropdownMenuItem<String>(
-                          value: city,
-                          child: Text(
-                            city,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (String? newCity) {
-                        if (newCity != null) {
-                          setState(() {
-                            selectedCity = newCity;
-                          });
-                          fetchStreetsData(selectedCity); // Fetch street data when a city is selected
-                        }
-                      },
+                    IconButton(
+                      icon: Icon(Icons.arrow_forward, color: Colors.white),
+                      onPressed: onSearchSubmit,
                     ),
                   ],
                 ),
