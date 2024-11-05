@@ -2,6 +2,7 @@ import 'package:accident_prediction/Screens/signIn.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import '../Reusable/reusable.dart';
+import 'Alert monitor/notify.dart';
 import 'dashboard.dart';
 import 'Route Selection/map.dart';
 
@@ -78,13 +79,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => const signIn(),
+                                        builder: (context) => StreetAlertSearch(),
                                       ),
                                     );
                                   },
                                   child: swapCard(
-                                    "Past Info",
-                                    "Get into your past info",
+                                    "Live Alert Monitoring",
+                                    "Get into severity alerts",
                                     Color(0x6224A9FF),
                                     'assets/images/pastInfo.png',
                                   ),

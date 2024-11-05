@@ -92,8 +92,7 @@ Row menuBar(BuildContext context, String text ){
           print('Menu button pressed');
         },
         style: ElevatedButton.styleFrom(
-          primary: Colors.blue, // Button background color
-          onPrimary: Colors.white, // Text color
+          foregroundColor: Colors.white, backgroundColor: Colors.blue, // Text color
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10.0), // Rounded corners
           ),
