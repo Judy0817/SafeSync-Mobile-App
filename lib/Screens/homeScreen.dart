@@ -1,6 +1,7 @@
 import 'package:accident_prediction/Screens/signIn.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import '../Reusable/color_utilis.dart';
 import '../Reusable/reusable.dart';
 import 'Alert monitor/notify.dart';
 import 'dashboard.dart';
@@ -17,6 +18,16 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Color(0xFF0DE4C7),
+        leading: IconButton(
+          icon: Icon(Icons.menu, size: 30, color: Colors.white), // Menu icon
+          onPressed: () {
+            // Handle the menu button press action here
+            print('Menu button pressed');
+          },
+        ),
+      ),
       body: Container(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
@@ -32,18 +43,8 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: Stack(
           children: [
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                padding: EdgeInsets.fromLTRB(10, 30, 10, 0),
-                color: Colors.transparent, // Change if you want a different background for the menu bar
-                child: menuBar(context, "SafeSync"),
-              ),
-            ),
             Padding(
-              padding: EdgeInsets.only(top: 100), // Adjust this value based on the height of your menu bar
+              padding: EdgeInsets.only(top: 30), // Adjust this value based on the height of your menu bar
               child: SingleChildScrollView(
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
@@ -67,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     );
                                   },
                                   child: swapCard(
-                                    "Route Selection",
+                                    "Route Planner",
                                     "You can select your route safely!",
                                     Color(0xFF5712A7),
                                     'assets/images/route.png',
@@ -118,7 +119,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     );
                                   },
                                   child: swapCard(
-                                    "Text 4",
+                                    "Give Feedback",
                                     "Route Selection",
                                     Color(0xFF0DE4C7),
                                     'assets/images/twocar.png',

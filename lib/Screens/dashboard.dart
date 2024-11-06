@@ -29,9 +29,70 @@ class _DashboardState extends State<Dashboard> {
     print('Navigating to $route');
   }
 
+  Widget cardTile(String title, String subtitle, String route) {
+    return Card(
+      elevation: 8,
+      color: Colors.white.withOpacity(0.2),  // Transparent background for the card
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: Colors.white.withOpacity(0.3)), // Transparent border
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(15),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            color: Colors.white,  // White text for better contrast
+          ),
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 5),
+          child: Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.white,  // Slightly transparent subtitle text
+            ),
+          ),
+        ),
+        trailing: Icon(
+          Icons.arrow_forward_ios,
+          size: 20,
+          color: Colors.white.withOpacity(0.7),  // Transparent icon color
+        ),
+        onTap: () => _navigateToPage(context, route),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Color(0xFF0DE4C7),  // Transparent AppBar
+        leading: IconButton(
+          icon: Icon(Icons.menu, size: 30, color: Colors.white), // Menu icon
+          onPressed: () {
+            // Handle the menu button press action here
+            print('Menu button pressed');
+          },
+        ),
+        actions: [
+          Padding(
+            padding: EdgeInsets.only(right: 16.0, top: 20), // Optional padding to add space from the right edge
+            child: Text(
+              'Dashboard',
+              style: TextStyle(
+                color: Colors.white, // Text color
+                fontWeight: FontWeight.bold, // Bold text
+                fontSize: 25, // Text size
+              ),
+            ),
+          ),
+        ],
+      ),
       body: Container(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
@@ -45,65 +106,33 @@ class _DashboardState extends State<Dashboard> {
             ],
           ),
         ),
-        child: Stack(
-          children: [
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                padding: EdgeInsets.fromLTRB(10, 30, 10, 0),
-                color: Colors.transparent, // Change if you want a different background for the menu bar
-                child: menuBar(context, "Dashboard"),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(top: 90), // Adjust this value based on the height of your menu bar
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    children: [
-                      SizedBox(height: 20),
-                      ListView.builder(
-                        shrinkWrap: true, // Allows ListView to take only the space it needs
-                        physics: NeverScrollableScrollPhysics(), // Prevents inner scrolling, allowing parent scroll
-                        itemCount: items.length,
-                        itemBuilder: (context, index) {
-                          return ListTile(
-                            leading: IconTheme(
-                              data: IconThemeData(
-                                color: Colors.black, // Change the color if needed
-                                size: 30, // Change the size if needed
-                              ),
-                              child: Icon(Icons.auto_graph_rounded),
-                            ),
-                            title: Text(
-                              items[index]['title']!,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            subtitle: Text(items[index]['subtitle']!),
-                            trailing: IconTheme(
-                              data: IconThemeData(
-                                color: Colors.black, // Change the color if needed
-                                size: 30, // Change the size if needed
-                              ),
-                              child: Icon(Icons.arrow_forward),
-                            ),
-                            onTap: () {
-                              _navigateToPage(context, items[index]['route']);
-                            },
-                          );
-                        },
-                      ),
-                    ],
+        child: Padding(
+          padding: const EdgeInsets.only(top: 40),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: [
+                  SizedBox(height: 20),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: items.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: cardTile(
+                          items[index]['title']!,
+                          items[index]['subtitle']!,
+                          items[index]['route']!,
+                        ),
+                      );
+                    },
                   ),
-                ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );

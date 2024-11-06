@@ -106,22 +106,6 @@ Row menuBar(BuildContext context, String text ){
           fontWeight: FontWeight.bold,
           fontSize: 27
       ),),
-      GestureDetector(
-        onTap: (){
-          Navigator.push(
-            context,
-              MaterialPageRoute(
-                builder: (context) => const signIn(),
-              )
-          );
-        },
-        child: CircleAvatar(
-            radius: 20,
-            backgroundColor: Colors.white.withOpacity(0.5),
-            backgroundImage: AssetImage('assets/images/mySaree_Up.jpg'),
-
-        ),
-      )
 
     ],
   );
