@@ -29,7 +29,7 @@ class _TopStreetsPerCityState extends State<TopStreetsPerCity> {
     });
 
     try {
-      final response = await http.get(Uri.parse('http://192.168.187.221:8080/get_cities'));
+      final response = await http.get(Uri.parse('http://192.168.194.221:8080/get_cities'));
 
       if (response.statusCode == 200) {
         print("Response body: ${response.body}"); // Log the response body
@@ -66,7 +66,7 @@ class _TopStreetsPerCityState extends State<TopStreetsPerCity> {
     });
 
     try {
-      final response = await http.get(Uri.parse('http://192.168.187.221:8080/top_10_streets_per_city?city=$city'));
+      final response = await http.get(Uri.parse('http://192.168.194.221:8080/top_10_streets_per_city?city=$city'));
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);

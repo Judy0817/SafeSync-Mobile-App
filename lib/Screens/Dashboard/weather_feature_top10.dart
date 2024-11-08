@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:http/http.dart' as http;
 
+import '../../config.dart';
+
 class WeatherChart extends StatefulWidget {
   const WeatherChart({Key? key}) : super(key: key);
 
@@ -14,6 +16,7 @@ class _WeatherChartState extends State<WeatherChart> {
   String selectedFeature = "Wind_Direction";
   List<int> data = [];
   List<String> labels = [];
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -22,14 +25,15 @@ class _WeatherChartState extends State<WeatherChart> {
   }
 
   Future<void> fetchData(String feature) async {
-    final url = Uri.parse("http://192.168.187.221:8080/weather_conditions_count?weather_feature=$feature");
+    final url = Uri.parse("${ApiConfig.baseUrl}/weather_conditions_count?weather_feature=$feature");
     final response = await http.get(url);
-
+    isLoading = true;
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);
       setState(() {
         data = List<int>.from(jsonData["data"]);
         labels = List<String>.from(jsonData["labels"]);
+        isLoading = false;
       });
     } else {
       print("Failed to load data");
@@ -38,56 +42,117 @@ class _WeatherChartState extends State<WeatherChart> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Weather Conditions Chart")),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
+    return isLoading
+        ? Center(child: CircularProgressIndicator())
+        : Scaffold(
+      appBar: AppBar(
+        title: const Text("Weather Conditions Chart"),
+        backgroundColor: Colors.teal,
+      ),
+      body: Container(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF0DE4C7),
+              Color(0xFF5712A7),
+            ],
+          ),
+        ),
+        child: Stack(
           children: [
-            // Dropdown for weather feature selection
-            DropdownButton<String>(
-              value: selectedFeature,
-              items: <String>['Temperature(F)',
-                'Wind_Chill(F)',
-                'Humidity(%)',
-                'Pressure(in)',
-                'Visibility(mi)',
-                'Wind_Direction',
-                'Wind_Speed(mph)',
-                'Precipitation(in)',
-                'Weather_Condition'] // Add other features if available
-                  .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    selectedFeature = value;
-                  });
-                  fetchData(selectedFeature);
-                }
-              },
-            ),
-            const SizedBox(height: 20),
+            Padding(
+              padding: EdgeInsets.only(top: 50),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    // Dropdown for weather feature selection
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: DropdownButton<String>(
+                        value: selectedFeature,
+                        items: <String>[
+                          'Temperature(F)',
+                          'Wind_Chill(F)',
+                          'Humidity(%)',
+                          'Pressure(in)',
+                          'Visibility(mi)',
+                          'Wind_Direction',
+                          'Wind_Speed(mph)',
+                          'Precipitation(in)',
+                          'Weather_Condition'
+                        ].map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() {
+                              selectedFeature = value;
+                            });
+                            fetchData(selectedFeature);
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 20),
 
-            // Displaying the bar chart
-            Expanded(
-              child: SfCartesianChart(
-                primaryXAxis: CategoryAxis(title: AxisTitle(text: selectedFeature)),
-                primaryYAxis: NumericAxis(title: AxisTitle(text: 'Count')),
-                series: <ChartSeries>[
-                  BarSeries<ChartData, String>(
-                    dataSource: List.generate(labels.length, (index) => ChartData(labels[index], data[index])),
-                    xValueMapper: (ChartData data, _) => data.label,
-                    yValueMapper: (ChartData data, _) => data.value,
-                    color: Colors.blue,
-                  ),
-                ],
-                title: ChartTitle(text: 'Weather Conditions by $selectedFeature'),
-                tooltipBehavior: TooltipBehavior(enable: true),
+                    // Displaying the bar chart
+                    SizedBox(
+                      height: 500, // Set the desired height for the chart
+                      child: SfCartesianChart(
+                        backgroundColor: Colors.transparent,
+                        plotAreaBackgroundColor: Colors.transparent,
+                        margin: EdgeInsets.symmetric(vertical: 20),
+                        primaryXAxis: CategoryAxis(
+                          majorGridLines: MajorGridLines(width: 0),
+                          labelStyle: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          title: AxisTitle(text: selectedFeature),
+                        ),
+                        primaryYAxis: NumericAxis(
+                          majorGridLines: MajorGridLines(width: 0),
+                          labelStyle: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          title: AxisTitle(text: 'Count'),
+                        ),
+                        title: ChartTitle(
+                          text: 'Weather Conditions by $selectedFeature',
+                          textStyle: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        tooltipBehavior: TooltipBehavior(enable: true),
+                        series: <ChartSeries<ChartData, String>>[
+                          BarSeries<ChartData, String>(
+                            dataSource: List.generate(labels.length,
+                                    (index) => ChartData(labels[index], data[index])),
+                            xValueMapper: (ChartData data, _) => data.label,
+                            yValueMapper: (ChartData data, _) => data.value,
+                            dataLabelSettings: DataLabelSettings(
+                              isVisible: true,
+                              textStyle: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            color: Color.fromRGBO(21, 72, 103, 1.0),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -95,6 +160,7 @@ class _WeatherChartState extends State<WeatherChart> {
       ),
     );
   }
+
 }
 
 // Data model for chart

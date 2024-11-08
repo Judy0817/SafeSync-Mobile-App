@@ -3,6 +3,8 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import '../../config.dart';
+
 class AverageWindSpeed extends StatefulWidget {
   @override
   _AverageWindSpeedState createState() => _AverageWindSpeedState();
@@ -28,7 +30,7 @@ class _AverageWindSpeedState extends State<AverageWindSpeed> {
     });
 
     try {
-      final response = await http.get(Uri.parse('http://192.168.187.221:8080/average_wind_speed'));
+      final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/average_wind_speed'));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -88,6 +90,8 @@ class _AverageWindSpeedState extends State<AverageWindSpeed> {
                 fontWeight: FontWeight.bold,
               ),
             ),
+            dataLabelMapper: (_WindSpeedData severityData, _) =>
+                severityData.value.toStringAsFixed(1),
           ),
         ],
       ),

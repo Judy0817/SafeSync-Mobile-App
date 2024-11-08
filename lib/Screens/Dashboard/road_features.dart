@@ -3,6 +3,8 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import '../../config.dart';
+
 class RoadFeatures extends StatefulWidget {
   @override
   _RoadFeaturesState createState() => _RoadFeaturesState();
@@ -19,7 +21,7 @@ class _RoadFeaturesState extends State<RoadFeatures> {
   }
 
   Future<void> fetchData() async {
-    final response = await http.get(Uri.parse('http://192.168.187.221:8080/road_features'));
+    final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/road_features'));
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);
@@ -51,7 +53,7 @@ class _RoadFeaturesState extends State<RoadFeatures> {
         : Scaffold(
       appBar: AppBar(
         title: Text('Road Features'),
-        backgroundColor: Color(0xFF5712A7),
+        backgroundColor: Colors.teal,
       ),
       body: Container(
         width: MediaQuery.of(context).size.width,

@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import '../../Reusable/reusable.dart';
+import '../../config.dart';
 
 class CityAccidentsChart extends StatefulWidget {
   @override
@@ -27,8 +28,8 @@ class _CityAccidentsChartState extends State<CityAccidentsChart> {
     });
 
     final uri = selectedOption == 'City'
-        ? Uri.parse('http://192.168.187.221:8080/top_city')
-        : Uri.parse('http://192.168.187.221:8080/top_street');
+        ? Uri.parse('${ApiConfig.baseUrl}/top_city')
+        : Uri.parse('${ApiConfig.baseUrl}/top_street');
 
     final response = await http.get(uri);
 
@@ -58,7 +59,7 @@ class _CityAccidentsChartState extends State<CityAccidentsChart> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Top 20 Accident Chart'),
-        backgroundColor: Color(0xFF5712A7),
+        backgroundColor: Colors.teal,
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())

@@ -3,6 +3,8 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import '../../config.dart';
+
 class AverageSeverityLevels extends StatefulWidget {
   @override
   _AverageSeverityLevelsState createState() => _AverageSeverityLevelsState();
@@ -28,7 +30,7 @@ class _AverageSeverityLevelsState extends State<AverageSeverityLevels> {
     });
 
     try {
-      final response = await http.get(Uri.parse('http://192.168.187.221:8080/average_weather_severity'));
+      final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/average_weather_severity'));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -87,12 +89,18 @@ class _AverageSeverityLevelsState extends State<AverageSeverityLevels> {
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
+              labelIntersectAction: LabelIntersectAction.none,  // Prevent overlapping labels
+              labelPosition: ChartDataLabelPosition.outside,   // Set label position
             ),
+            // Use dataLabelMapper to round the value and format the label
+            dataLabelMapper: (_SeverityData severityData, _) =>
+                severityData.value.toStringAsFixed(1), // Round the value to one decimal
           ),
         ],
       ),
     );
   }
+
 
   @override
   Widget build(BuildContext context) {

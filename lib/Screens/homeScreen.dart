@@ -44,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Stack(
           children: [
             Padding(
-              padding: EdgeInsets.only(top: 30), // Adjust this value based on the height of your menu bar
+              padding: EdgeInsets.only(top: 10), // Adjust this value based on the height of your menu bar
               child: SingleChildScrollView(
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
@@ -103,7 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   },
                                   child: swapCard(
                                     "Dashboard",
-                                    "Analyse the Data",
+                                    "Visualize the Data",
                                     Color(0x0D8070FF),
                                     'assets/images/dashboard.png',
                                   ),
@@ -120,7 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   },
                                   child: swapCard(
                                     "Give Feedback",
-                                    "Route Selection",
+                                    "Provide your comments in here!",
                                     Color(0xFF0DE4C7),
                                     'assets/images/twocar.png',
                                   ),

@@ -3,6 +3,8 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import '../../config.dart';
+
 class WeatherConditions extends StatefulWidget {
   @override
   _WeatherConditionsState createState() => _WeatherConditionsState();
@@ -19,7 +21,7 @@ class _WeatherConditionsState extends State<WeatherConditions> {
   }
 
   Future<void> fetchData() async {
-    final response = await http.get(Uri.parse('http://192.168.187.221:8080/weather_conditions'));
+    final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/weather_conditions'));
     // to get this url run the ipconfig in the terminal and then copy ipv4 address
 
     if (response.statusCode == 200) {
@@ -52,6 +54,7 @@ class _WeatherConditionsState extends State<WeatherConditions> {
         : Scaffold(
       appBar: AppBar(
         title: Text('Weather Conditions'),
+        backgroundColor: Colors.teal,
       ),
       body: Container(
         width: MediaQuery.of(context).size.width,
