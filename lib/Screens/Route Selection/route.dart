@@ -73,15 +73,15 @@ class _ResultPageState extends State<ResultPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('${city.cityName} Weather Information', style: TextStyle(fontWeight: FontWeight.bold)),
+          title: Text('${city.cityName} Weather Information', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Temperature: ${city.temperature}°F'),
-              Text('Pressure: ${city.pressure} hPa'),
-              Text('Wind Direction: ${city.windDirection}'),
-              Text('Condition: ${city.weatherCondition}'),
+              Text('Temperature: ${city.temperature}°F', style: TextStyle(color: Colors.black)),
+              Text('Pressure: ${city.pressure} hPa', style: TextStyle(color: Colors.black)),
+              Text('Wind Direction: ${city.windDirection}', style: TextStyle(color: Colors.black)),
+              Text('Condition: ${city.weatherCondition}', style: TextStyle(color: Colors.black)),
             ],
           ),
           actions: [
@@ -89,7 +89,7 @@ class _ResultPageState extends State<ResultPage> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('Close'),
+              child: Text('Close', style: TextStyle(color: Colors.teal)),
             ),
           ],
         );
@@ -101,10 +101,12 @@ class _ResultPageState extends State<ResultPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Route Details'),
+        title: Text('Route Details', style: TextStyle(color: Colors.white)),  // Ensure text is visible on the teal background
         centerTitle: true,
+        backgroundColor: Colors.teal,  // Match MapPage's background color
       ),
-      body: Padding(
+      body: Container(
+        color: Colors.teal.shade50,  // Light background to match MapPage's theme
         padding: const EdgeInsets.all(16.0),
         child: isLoading
             ? Center(child: CircularProgressIndicator())
@@ -113,16 +115,14 @@ class _ResultPageState extends State<ResultPage> {
           children: [
             Text(
               'Start Point: ${widget.startPoint}',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blueAccent),
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),  // Black text for contrast
             ),
             SizedBox(height: 16),
-
             Text(
               'Route:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
             ),
             SizedBox(height: 8),
-
             Expanded(
               child: ListView.builder(
                 itemCount: routeCities.length,
@@ -130,11 +130,12 @@ class _ResultPageState extends State<ResultPage> {
                   return Card(
                     elevation: 4,
                     margin: const EdgeInsets.symmetric(vertical: 8),
+                    color: Colors.white,  // White background for cards
                     child: ListTile(
-                      leading: Icon(Icons.location_city, color: Colors.blueAccent),
+                      leading: Icon(Icons.location_city, color: Colors.teal),  // Match icon color with MapPage
                       title: Text(
                         routeCities[index],
-                        style: TextStyle(fontSize: 16),
+                        style: TextStyle(fontSize: 18, color: Colors.black),  // Dark text for better visibility
                       ),
                       onTap: () {
                         _showWeatherInfoDialog(selectedCities[index]);
@@ -144,22 +145,25 @@ class _ResultPageState extends State<ResultPage> {
                 },
               ),
             ),
-
             SizedBox(height: 16),
-
             Text(
               'End Point: ${widget.endPoint}',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blueAccent),
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
             ),
-
             SizedBox(height: 16),
-
             Center(
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
                 },
-                child: Text('Go Back'),
+                child: Text('Go Back', style: TextStyle(fontSize: 18, color: Colors.white)),
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 15),
+                  primary: Colors.teal,  // Match button color with MapPage
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
               ),
             ),
           ],

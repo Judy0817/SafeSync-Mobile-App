@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-
 class StreetAlertSearch extends StatefulWidget {
   @override
   _StreetAlertSearchState createState() => _StreetAlertSearchState();
@@ -60,7 +59,7 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Street Alert Search'),
-        backgroundColor: Color(0xFF5712A7),
+        backgroundColor: Colors.teal,
       ),
       body: Container(
         width: MediaQuery.of(context).size.width,
@@ -70,8 +69,8 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF0DE4C7),
-              Color(0xFF5712A7),
+              Color(0xFF0DE4C7), // Light blue-green color
+              Color(0xFF5712A7), // Purple color
             ],
           ),
         ),
@@ -79,9 +78,11 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
           padding: EdgeInsets.all(16.0),
           child: Column(
             children: [
+              // Search field
               TextField(
                 decoration: InputDecoration(
                   labelText: 'Search street name...',
+                  labelStyle: TextStyle(color: Colors.grey[700]), // Adjust label color
                   border: OutlineInputBorder(),
                   filled: true,
                   fillColor: Colors.white,
@@ -91,7 +92,8 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
                 },
               ),
               SizedBox(height: 10),
-              // Show matching street names as suggestions
+
+              // Matching streets list
               if (matchingStreets.isNotEmpty)
                 Expanded(
                   child: ListView.builder(
@@ -107,6 +109,8 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
                   ),
                 ),
               SizedBox(height: 20),
+
+              // Display alert info or loading indicator
               isLoading
                   ? Center(child: CircularProgressIndicator())
                   : alertInfo != null
@@ -121,40 +125,42 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
                     padding: EdgeInsets.all(10.0),
                     child: SingleChildScrollView(
                       child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                SizedBox(width: 10),
-                                Text(
-                                  "Alert Information for ${query}",
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
-                                  ),
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              SizedBox(width: 10),
+                              Text(
+                                "Alert Information for ${query}",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
                                 ),
-                              ],
-                            ),
-                            Divider(),
-                            buildAlertRow(
-                                "Severity", "${alertInfo!['Severity']}",
-                                icon: FontAwesomeIcons.exclamationTriangle,
-                                color: alertInfo!['Severity'] >= 4 ? Colors.red : Colors.green),
-                            buildAlertRow("Weather", "${alertInfo!['Weather_Condition']}", icon: FontAwesomeIcons.cloud),
-                            buildAlertRow("Temperature", "${alertInfo!['Temperature(F)']}°F", icon: FontAwesomeIcons.thermometerHalf),
-                            buildAlertRow("Humidity", "${alertInfo!['Humidity(%)']}%", icon: FontAwesomeIcons.tint),
-                            buildAlertRow("Wind Chill", "${alertInfo!['Wind_Chill(F)']}°F", icon: FontAwesomeIcons.wind),
-                            buildAlertRow("Pressure", "${alertInfo!['Pressure(in)']} in", icon: FontAwesomeIcons.compressArrowsAlt),
-                            buildAlertRow("Visibility", "${alertInfo!['Visibility(mi)']} mi", icon: FontAwesomeIcons.eye),
-                            buildAlertRow("Wind Direction", "${alertInfo!['Wind_Direction']}", icon: FontAwesomeIcons.compass),
-                            buildAlertRow("Wind Speed", "${alertInfo!['Wind_Speed(mph)']} mph", icon: FontAwesomeIcons.wind),
-                            buildAlertRow("Precipitation", "${alertInfo!['Precipitation(in)']} in", icon: FontAwesomeIcons.cloudRain),
-                          ],
-                        ),
+                              ),
+                            ],
+                          ),
+                          Divider(),
+                          buildAlertRow(
+                            "Severity",
+                            "${alertInfo!['Severity']}",
+                            icon: FontAwesomeIcons.exclamationTriangle,
+                            color: alertInfo!['Severity'] >= 4 ? Colors.red : Colors.green,
+                          ),
+                          buildAlertRow("Weather", "${alertInfo!['Weather_Condition']}", icon: FontAwesomeIcons.cloud),
+                          buildAlertRow("Temperature", "${alertInfo!['Temperature(F)']}°F", icon: FontAwesomeIcons.thermometerHalf),
+                          buildAlertRow("Humidity", "${alertInfo!['Humidity(%)']}%", icon: FontAwesomeIcons.tint),
+                          buildAlertRow("Wind Chill", "${alertInfo!['Wind_Chill(F)']}°F", icon: FontAwesomeIcons.wind),
+                          buildAlertRow("Pressure", "${alertInfo!['Pressure(in)']} in", icon: FontAwesomeIcons.compressArrowsAlt),
+                          buildAlertRow("Visibility", "${alertInfo!['Visibility(mi)']} mi", icon: FontAwesomeIcons.eye),
+                          buildAlertRow("Wind Direction", "${alertInfo!['Wind_Direction']}", icon: FontAwesomeIcons.compass),
+                          buildAlertRow("Wind Speed", "${alertInfo!['Wind_Speed(mph)']} mph", icon: FontAwesomeIcons.wind),
+                          buildAlertRow("Precipitation", "${alertInfo!['Precipitation(in)']} in", icon: FontAwesomeIcons.cloudRain),
+                        ],
                       ),
                     ),
                   ),
+                ),
               )
                   : query.isNotEmpty
                   ? Text("No match found", style: TextStyle(color: Colors.red))

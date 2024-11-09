@@ -37,14 +37,19 @@ class _MapPageState extends State<MapPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Route Planner'),
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Colors.teal,
       ),
       body: Container(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.lightBlue.shade100, Colors.white],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF0DE4C7),
+              Color(0xFF5712A7),
+            ],
           ),
         ),
         padding: const EdgeInsets.all(20.0),
@@ -61,8 +66,8 @@ class _MapPageState extends State<MapPage> {
               child: Text('Enter'),
               style: ElevatedButton.styleFrom(
                 padding: EdgeInsets.symmetric(vertical: 15),
-                textStyle: TextStyle(fontSize: 18),
-                primary: Colors.blueAccent,
+                textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                primary: Colors.teal.shade700,  // Button color to match app bar
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),
@@ -77,20 +82,21 @@ class _MapPageState extends State<MapPage> {
   Widget _buildTextField(TextEditingController controller, String label) {
     return TextField(
       controller: controller,
+      style: TextStyle(color: Colors.white), // Text color inside text field
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: Colors.blueAccent),
+        labelStyle: TextStyle(color: Colors.white), // Label text color
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide(color: Colors.blueAccent),
+          borderSide: BorderSide(color: Colors.teal.shade300),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide(color: Colors.blueAccent, width: 2.0),
+          borderSide: BorderSide(color: Colors.teal.shade700, width: 2.0),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide(color: Colors.blueAccent.shade200, width: 1.5),
+          borderSide: BorderSide(color: Colors.teal.shade200, width: 1.5),
         ),
       ),
     );
