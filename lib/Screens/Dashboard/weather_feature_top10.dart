@@ -25,7 +25,7 @@ class _WeatherChartState extends State<WeatherChart> {
   }
 
   Future<void> fetchData(String feature) async {
-    final url = Uri.parse("${ApiConfig.baseUrl}/weather_conditions_count?weather_feature=$feature");
+    final url = Uri.parse("${ApiConfig.baseUrl}/weather/weather_conditions_count?weather_feature=$feature");
     final response = await http.get(url);
     isLoading = true;
     if (response.statusCode == 200) {

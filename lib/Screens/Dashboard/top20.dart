@@ -28,8 +28,8 @@ class _CityAccidentsChartState extends State<CityAccidentsChart> {
     });
 
     final uri = selectedOption == 'City'
-        ? Uri.parse('${ApiConfig.baseUrl}/top_city')
-        : Uri.parse('${ApiConfig.baseUrl}/top_street');
+        ? Uri.parse('${ApiConfig.baseUrl}/location/top_city')
+        : Uri.parse('${ApiConfig.baseUrl}/location/top_street');
 
     final response = await http.get(uri);
 

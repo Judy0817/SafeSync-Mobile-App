@@ -1,5 +1,5 @@
 // config.dart
 
 class ApiConfig {
-  static const String baseUrl = 'http://192.168.194.221:8080';
+  static const String baseUrl = 'http://10.34.27.5:8080';
 }

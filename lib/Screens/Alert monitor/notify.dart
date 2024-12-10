@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:http/http.dart' as http;
+
+import '../../config.dart';
 
 class StreetAlertSearch extends StatefulWidget {
   @override
@@ -9,49 +12,89 @@ class StreetAlertSearch extends StatefulWidget {
 }
 
 class _StreetAlertSearchState extends State<StreetAlertSearch> {
-  Map<String, dynamic>? alertInfo;
-  Map<String, dynamic> streetData = {};
-  List<String> matchingStreets = [];
-  String query = '';
-  bool isLoading = false;
+  String streetName = ''; // Street name entered by the user
+  Map<String, dynamic>? weatherData; // Weather data for the selected street
+  double? severity; // Predicted severity
+  String errorMessage = ''; // Error message if something goes wrong
+  bool isLoading = false; // Loading state
 
-  @override
-  void initState() {
-    super.initState();
-    loadJsonData();
-  }
-
-  Future<void> loadJsonData() async {
+  // Function to fetch the geolocation based on the street name
+  Future<void> fetchGeolocation(String streetName) async {
     setState(() {
       isLoading = true;
     });
 
-    // Load JSON file from assets
-    final String response = await rootBundle.loadString('assets/average_street_weather.json');
-    final data = json.decode(response) as Map<String, dynamic>;
+    try {
+      final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/weather/geolocation?street_name=$streetName'));
+      final data = json.decode(response.body);
+      print(response.body);
 
-    setState(() {
-      streetData = data;
-      isLoading = false;
-    });
+      // Ensure the latitude and longitude are parsed as doubles
+      if (data['latitude'] != null && data['longitude'] != null) {
+        double latitude = double.parse(data['latitude']);
+        double longitude = double.parse(data['longitude']);
+        fetchWeatherData(latitude, longitude);
+      } else {
+        setState(() {
+          errorMessage = 'No geolocation data found for this street.';
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        errorMessage = 'Error fetching geolocation data.';
+        isLoading = false;
+      });
+    }
   }
 
-  void searchMatchingStreets(String searchTerm) {
-    setState(() {
-      query = searchTerm;
-      matchingStreets = streetData.keys
-          .where((street) => street.toLowerCase().startsWith(searchTerm.toLowerCase()))
-          .toList();
-      alertInfo = null; // Clear previous alert info
-    });
+  // Function to fetch weather data based on latitude and longitude
+  Future<void> fetchWeatherData(double latitude, double longitude) async {
+    try {
+      final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/weather/weather_data?latitude=$latitude&longitude=$longitude'));
+      final data = json.decode(response.body);
+
+      setState(() {
+        weatherData = {
+          'condition': data['weather'] ?? 'N/A',
+          'temperature': data['temperature(F)'] ?? 0.0,
+          'humidity': data['humidity(%)'] ?? 0.0,
+          'windChill': data['wind_chill(F)'] ?? 0.0,
+          'pressure': data['pressure(in)'] ?? 0.0,
+          'visibility': data['visibility(mi)'] ?? 0.0,
+          'windDirection': data['wind_direction'] ?? 'N/A',
+          'windSpeed': data['wind_speed(mph)'] ?? 0.0,
+          'precipitation': data['precipitation(in)'] ?? 0.0,
+        };
+
+        // Simulate severity prediction for testing
+        severity = 3.5; // Example severity prediction
+        errorMessage = ''; // Reset error message
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        errorMessage = 'Error fetching weather data.';
+        isLoading = false;
+      });
+    }
   }
 
-  void selectStreet(String streetName) {
-    setState(() {
-      query = streetName;
-      alertInfo = streetData[streetName];
-      matchingStreets = []; // Clear suggestions after selection
-    });
+  // Function to get severity color
+  Color getSeverityColor(double? severity) {
+    if (severity == null) return Colors.black; // Default color if severity is null
+    return severity > 3.0 ? Colors.red : Colors.green;
+  }
+
+  // Submit handler
+  void handleSearchSubmit() {
+    if (streetName.trim().isEmpty) {
+      setState(() {
+        errorMessage = 'Please enter a street name.';
+      });
+    } else {
+      fetchGeolocation(streetName); // Fetch the geolocation based on street name
+    }
   }
 
   @override
@@ -78,93 +121,102 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
           padding: EdgeInsets.all(16.0),
           child: Column(
             children: [
-              // Search field
-              TextField(
-                decoration: InputDecoration(
-                  labelText: 'Search street name...',
-                  labelStyle: TextStyle(color: Colors.grey[700]), // Adjust label color
-                  border: OutlineInputBorder(),
-                  filled: true,
-                  fillColor: Colors.white,
-                ),
-                onChanged: (value) {
-                  searchMatchingStreets(value);
-                },
+              // Row to place TextField and Button inline
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Street Name Input
+                  Expanded(
+                    child: TextField(
+                      decoration: InputDecoration(
+                        labelText: 'Enter street name',
+                        labelStyle: TextStyle(color: Colors.grey[700]),
+                        border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          streetName = value;
+                        });
+                      },
+                    ),
+                  ),
+                  SizedBox(width: 10), // Space between TextField and Button
+
+                  // Submit Button
+                  ElevatedButton(
+                    onPressed: handleSearchSubmit,
+                    child: Text('Get Weather Data'),
+                    style: ElevatedButton.styleFrom(primary: Colors.teal),
+                  ),
+                ],
               ),
               SizedBox(height: 10),
 
-              // Matching streets list
-              if (matchingStreets.isNotEmpty)
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: matchingStreets.length,
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        title: Text(matchingStreets[index]),
-                        onTap: () {
-                          selectStreet(matchingStreets[index]);
-                        },
-                      );
-                    },
-                  ),
-                ),
-              SizedBox(height: 20),
+              // Error message if any
+              if (errorMessage.isNotEmpty)
+                Text(errorMessage, style: TextStyle(color: Colors.red)),
 
-              // Display alert info or loading indicator
-              isLoading
-                  ? Center(child: CircularProgressIndicator())
-                  : alertInfo != null
-                  ? Expanded(
-                child: Card(
-                  color: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  elevation: 5,
-                  child: Padding(
-                    padding: EdgeInsets.all(10.0),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              SizedBox(width: 10),
-                              Text(
-                                "Alert Information for ${query}",
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
+              // Loading indicator
+              if (isLoading) Center(child: CircularProgressIndicator()),
+
+              // Display weather data
+              if (weatherData != null)
+                Expanded(
+                  child: Card(
+                    color: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    elevation: 5,
+                    child: Padding(
+                      padding: EdgeInsets.all(10.0),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  "Weather Information for $streetName",
+                                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                            Divider(),
+                            buildWeatherRow("Weather Condition", weatherData!['condition']),
+                            buildWeatherRow("Temperature", "${weatherData!['temperature']}°F"),
+                            buildWeatherRow("Humidity", "${weatherData!['humidity']}%"),
+                            buildWeatherRow("Wind Chill", "${weatherData!['windChill']}°F"),
+                            buildWeatherRow("Pressure", "${weatherData!['pressure']} in"),
+                            buildWeatherRow("Visibility", "${weatherData!['visibility']} mi"),
+                            buildWeatherRow("Wind Direction", weatherData!['windDirection']),
+                            buildWeatherRow("Wind Speed", "${weatherData!['windSpeed']} mph"),
+                            buildWeatherRow("Precipitation", "${weatherData!['precipitation']} in"),
+
+                            // Display severity prediction
+                            if (severity != null)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 10.0),
+                                child: Row(
+                                  children: [
+                                    Icon(FontAwesomeIcons.exclamationTriangle, color: getSeverityColor(severity)),
+                                    SizedBox(width: 20),
+                                    Text(
+                                      "Predicted Severity: ${severity!.toStringAsFixed(2)}",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold, color: getSeverityColor(severity)),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
-                          ),
-                          Divider(),
-                          buildAlertRow(
-                            "Severity",
-                            "${alertInfo!['Severity']}",
-                            icon: FontAwesomeIcons.exclamationTriangle,
-                            color: alertInfo!['Severity'] >= 4 ? Colors.red : Colors.green,
-                          ),
-                          buildAlertRow("Weather", "${alertInfo!['Weather_Condition']}", icon: FontAwesomeIcons.cloud),
-                          buildAlertRow("Temperature", "${alertInfo!['Temperature(F)']}°F", icon: FontAwesomeIcons.thermometerHalf),
-                          buildAlertRow("Humidity", "${alertInfo!['Humidity(%)']}%", icon: FontAwesomeIcons.tint),
-                          buildAlertRow("Wind Chill", "${alertInfo!['Wind_Chill(F)']}°F", icon: FontAwesomeIcons.wind),
-                          buildAlertRow("Pressure", "${alertInfo!['Pressure(in)']} in", icon: FontAwesomeIcons.compressArrowsAlt),
-                          buildAlertRow("Visibility", "${alertInfo!['Visibility(mi)']} mi", icon: FontAwesomeIcons.eye),
-                          buildAlertRow("Wind Direction", "${alertInfo!['Wind_Direction']}", icon: FontAwesomeIcons.compass),
-                          buildAlertRow("Wind Speed", "${alertInfo!['Wind_Speed(mph)']} mph", icon: FontAwesomeIcons.wind),
-                          buildAlertRow("Precipitation", "${alertInfo!['Precipitation(in)']} in", icon: FontAwesomeIcons.cloudRain),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              )
-                  : query.isNotEmpty
-                  ? Text("No match found", style: TextStyle(color: Colors.red))
-                  : Container(),
             ],
           ),
         ),
@@ -172,12 +224,14 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
     );
   }
 
-  Widget buildAlertRow(String label, String value, {required IconData icon, Color color = Colors.black}) {
+
+  // Function to build weather data rows
+  Widget buildWeatherRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: Row(
         children: [
-          Icon(icon, color: color),
+          Icon(FontAwesomeIcons.cloud, color: Colors.blue),
           SizedBox(width: 20),
           Expanded(
             child: Text(
@@ -187,10 +241,7 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
           ),
           Text(
             value,
-            style: TextStyle(
-              color: color,
-              fontSize: 16,
-            ),
+            style: TextStyle(color: Colors.black, fontSize: 16),
           ),
         ],
       ),

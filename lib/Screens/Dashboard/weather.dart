@@ -21,7 +21,7 @@ class _WeatherConditionsState extends State<WeatherConditions> {
   }
 
   Future<void> fetchData() async {
-    final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/weather_conditions'));
+    final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/weather/weather_conditions'));
     // to get this url run the ipconfig in the terminal and then copy ipv4 address
 
     if (response.statusCode == 200) {

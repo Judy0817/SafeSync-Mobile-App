@@ -27,7 +27,7 @@ class _ThreeYearsAccidentsState extends State<ThreeYearsAccidents> {
       chartData = []; // Clear previous data
     });
 
-    final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/accidents_$year'));
+    final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/time/accidents_$year'));
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);

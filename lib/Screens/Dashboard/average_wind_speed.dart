@@ -30,7 +30,7 @@ class _AverageWindSpeedState extends State<AverageWindSpeed> {
     });
 
     try {
-      final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/average_wind_speed'));
+      final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/weather/average_wind_speed'));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);

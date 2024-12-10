@@ -21,7 +21,7 @@ class _RoadFeaturesState extends State<RoadFeatures> {
   }
 
   Future<void> fetchData() async {
-    final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/road_features'));
+    final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/road/road_features'));
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);

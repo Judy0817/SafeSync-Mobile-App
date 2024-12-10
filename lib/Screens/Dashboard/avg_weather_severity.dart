@@ -30,7 +30,7 @@ class _AverageSeverityLevelsState extends State<AverageSeverityLevels> {
     });
 
     try {
-      final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/average_weather_severity'));
+      final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/weather/average_weather_severity'));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
