@@ -21,7 +21,7 @@ class _SeverityDistributionState extends State<SeverityDistribution> {
   }
 
   Future<void> fetchData() async {
-    final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/severity_distribution'));
+    final response = await http.get(Uri.parse('${ApiConfig.baseUrl}/location/severity_distribution'));
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);
