@@ -12,6 +12,7 @@ class StreetAlertSearch extends StatefulWidget {
 class RoadFeatures {
   final bool crossings;
   final bool giveWay;
+  final bool trafficSignal;
   final bool junction;
   final bool noExit;
   final bool railway;
@@ -24,6 +25,7 @@ class RoadFeatures {
     required this.crossings,
     required this.giveWay,
     required this.junction,
+    required this.trafficSignal,
     required this.noExit,
     required this.railway,
     required this.roundabout,
@@ -34,13 +36,14 @@ class RoadFeatures {
 
   factory RoadFeatures.fromJson(Map<String, dynamic> json) {
     return RoadFeatures(
-      crossings: json['crossings'] ?? false,
+      crossings: json['crossing'] ?? false,
       giveWay: json['give_way'] ?? false,
+      trafficSignal: json['traffic_signal'] ?? false,
       junction: json['junction'] ?? false,
       noExit: json['no_exit'] ?? false,
       railway: json['railway'] ?? false,
       roundabout: json['roundabout'] ?? false,
-      speedBumps: json['speed_bumps'] ?? false,
+      speedBumps: json['bump'] ?? false,
       station: json['station'] ?? false,
       stop: json['stop'] ?? false,
     );
@@ -134,14 +137,24 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
       });
     }
   }
-
   void handleStreetNameChange(String value) {
     setState(() {
-      filteredStreetNames = streetNames
-          .where((street) => street.toLowerCase().contains(value.toLowerCase()))
+      // Convert input to lowercase for case-insensitive comparison
+      final lowerValue = value.toLowerCase();
+
+      // Separate exact matches and partial matches
+      final exactMatches = streetNames
+          .where((street) => street.toLowerCase() == lowerValue)
           .toList();
+      final partialMatches = streetNames
+          .where((street) => street.toLowerCase().contains(lowerValue) && street.toLowerCase() != lowerValue)
+          .toList();
+
+      // Combine exact matches first, followed by partial matches
+      filteredStreetNames = [...exactMatches, ...partialMatches];
     });
   }
+
 
   Future<void> fetchWeatherData(String streetName) async {
     try {
@@ -230,15 +243,16 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
         'wind_direction': weatherDataModel!.windDirection,
         'wind_speed': weatherDataModel!.windSpeed.toString(),
         'weather_condition': weatherDataModel!.condition,
-        'bumplse': roadFeatures.speedBumps ? 'true' : 'false',
+        'bump': roadFeatures.speedBumps ? 'true' : 'false',
+        'crossing': roadFeatures.crossings ? 'true' : 'false',
         'junction': roadFeatures.junction ? 'true' : 'false',
         'no_exit': roadFeatures.noExit ? 'true' : 'false',
+        'traffic_signal': roadFeatures.trafficSignal ? 'true' : 'false',
         'railway': roadFeatures.railway ? 'true' : 'false',
         'roundabout': roadFeatures.roundabout ? 'true' : 'false',
         'station': roadFeatures.station ? 'true' : 'false',
         'stop': roadFeatures.stop ? 'true' : 'false',
         'traffic_calming': roadFeatures.speedBumps ? 'true' : 'false',
-        'traffic_signal': 'false',
       };
 
       final response = await http.get(Uri.parse(
@@ -424,12 +438,13 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
             child: ListBody(
               children: <Widget>[
                 Text('Crossings: ${weatherDataModel!.roadFeatures.crossings ? 'Yes' : 'No'}'),
+                Text('Bump: ${weatherDataModel!.roadFeatures.speedBumps ? 'Yes' : 'No'}'),
                 Text('Junction: ${weatherDataModel!.roadFeatures.junction ? 'Yes' : 'No'}'),
                 Text('Railway: ${weatherDataModel!.roadFeatures.railway ? 'Yes' : 'No'}'),
+                Text('Traffic Signal: ${weatherDataModel!.roadFeatures.trafficSignal ? 'Yes' : 'No'}'),
                 Text('Give Way: ${weatherDataModel!.roadFeatures.giveWay ? 'Yes' : 'No'}'),
                 Text('No Exit: ${weatherDataModel!.roadFeatures.noExit ? 'Yes' : 'No'}'),
                 Text('Roundabout: ${weatherDataModel!.roadFeatures.roundabout ? 'Yes' : 'No'}'),
-                Text('Speed Bumps: ${weatherDataModel!.roadFeatures.speedBumps ? 'Yes' : 'No'}'),
                 Text('Station: ${weatherDataModel!.roadFeatures.station ? 'Yes' : 'No'}'),
                 Text('Stop: ${weatherDataModel!.roadFeatures.stop ? 'Yes' : 'No'}'),
               ],
