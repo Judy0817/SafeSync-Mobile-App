@@ -22,7 +22,7 @@ class _ResultPageState extends State<ResultPage> {
     final String destination = widget.endPoint.replaceAll(' ', '+');
 
     final url =
-        'https://maps.googleapis.com/maps/api/directions/json?origin=$starting&destination=$destination&key=example-key';
+        'https://maps.googleapis.com/maps/api/directions/json?origin=$starting&destination=$destination&key=example-key1111';
 
     final response = await http.get(Uri.parse(url));
 
