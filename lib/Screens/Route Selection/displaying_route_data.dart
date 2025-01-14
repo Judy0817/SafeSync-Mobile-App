@@ -18,20 +18,40 @@ class _ResultPageState extends State<ResultPage> {
   late Future<Map<String, double>> _averageSeverities;
 
   Future<Map<String, dynamic>> _fetchRouteData() async {
-    final String starting = widget.startPoint.replaceAll(' ', '%20');
-    final String destination = widget.endPoint.replaceAll(' ', '%20');
+    final String starting = widget.startPoint.replaceAll(' ', '+');
+    final String destination = widget.endPoint.replaceAll(' ', '+');
 
     final url =
-        '${ApiConfig.baseUrl}/json/getStartingDestinationData?starting=$starting&destination=$destination';
+        'https://maps.googleapis.com/maps/api/directions/json?origin=$starting&destination=$destination&key=example-key';
 
     final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      final data = jsonDecode(response.body);
+      // Parse the relevant route data from the response
+      final routes = data['routes'] as List;
+      if (routes.isNotEmpty) {
+        final route = routes[0]; // Assuming the first route is the desired one
+        final legs = route['legs'] as List;
+        if (legs.isNotEmpty) {
+          final leg = legs[0]; // First leg of the route
+          final steps = leg['steps'] as List;
+
+          // Extract street names from the steps
+          Map<String, dynamic> streetData = {};
+          for (var step in steps) {
+            final streetName = step['html_instructions'] ?? 'Unknown';
+            streetData[streetName] = step;
+          }
+          return streetData;
+        }
+      }
+      throw Exception('No valid route found');
     } else {
       throw Exception('Failed to load route data');
     }
   }
+
   Future<double> _fetchSeverity(Map<String, dynamic> streetData) async {
     final weather = streetData['weather'] as Map<String, dynamic>;
     final roadFeatures = streetData['road_features'] as Map<String, dynamic>;
@@ -56,8 +76,6 @@ class _ResultPageState extends State<ResultPage> {
       queryParameters: queryParams,
     );
 
-    //print('Request URL: $url'); // For debugging
-
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
@@ -67,7 +85,6 @@ class _ResultPageState extends State<ResultPage> {
       throw Exception('Failed to calculate severity: ${response.body}');
     }
   }
-
 
   Future<Map<String, double>> _calculateAverageSeverities(Map<String, dynamic> routeData) async {
     final Map<String, double> averageSeverities = {};
@@ -86,13 +103,13 @@ class _ResultPageState extends State<ResultPage> {
     return averageSeverities;
   }
 
-
   @override
   void initState() {
     super.initState();
     _routeData = _fetchRouteData();
     _averageSeverities = _routeData.then(_calculateAverageSeverities);
   }
+
   Widget _buildAverageSeverityRow(String street, double averageSeverity) {
     return ListTile(
       title: Text(
@@ -110,7 +127,6 @@ class _ResultPageState extends State<ResultPage> {
     );
   }
 
-  // Function to display feature row (check or cancel)
   Widget _buildFeatureRow(String label, bool value) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -124,7 +140,6 @@ class _ResultPageState extends State<ResultPage> {
     );
   }
 
-  // Function to show detailed data in a dialog when clicking a street
   Future<void> _showDetailsDialog(BuildContext context, String street, Map<String, dynamic> data) async {
     final roadFeatures = data['road_features'] as Map<String, dynamic>;
     final weather = data['weather'] as Map<String, dynamic>;
@@ -153,7 +168,6 @@ class _ResultPageState extends State<ResultPage> {
                   Text('Wind Speed: ${weather['wind_speed(mph)']} mph', style: TextStyle(fontSize: 16)),
                   Text('Weather Condition: ${weather['weather']}', style: TextStyle(fontSize: 16)),
                   Divider(height: 20, thickness: 1, color: Colors.grey.shade300),
-
                 ],
               ),
             ),
@@ -169,7 +183,6 @@ class _ResultPageState extends State<ResultPage> {
         },
       );
     } catch (error) {
-      // Handle error if fetching severity fails
       showDialog(
         context: context,
         builder: (context) {
@@ -190,8 +203,6 @@ class _ResultPageState extends State<ResultPage> {
     }
   }
 
-
-  // Function to build each street entry as a clickable list tile
   Widget _buildStreetEntry(String street, Map<String, dynamic> data) {
     return ListTile(
       title: Text(
@@ -231,7 +242,6 @@ class _ResultPageState extends State<ResultPage> {
                 } else if (severitySnapshot.hasData) {
                   final averageSeverities = severitySnapshot.data!;
 
-                  // Calculate overall average severity
                   double overallAverageSeverity = averageSeverities.values.isNotEmpty
                       ? averageSeverities.values.reduce((a, b) => a + b) /
                       averageSeverities.length
@@ -277,6 +287,4 @@ class _ResultPageState extends State<ResultPage> {
       ),
     );
   }
-
-
 }

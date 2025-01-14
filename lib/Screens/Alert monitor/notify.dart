@@ -156,10 +156,10 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
   }
 
 
-  Future<void> fetchWeatherData(String streetName) async {
+  Future<void> fetchWeatherData(String streetName, String cityName, String countyName) async {
     try {
       final response = await http.get(Uri.parse(
-          '${ApiConfig.baseUrl}/weather/geolocation?street_name=$streetName'));
+          '${ApiConfig.baseUrl}/json/geolocation?street_name=$streetName&city_name=$cityName&county_name=$countyName'));
 
       // Debug: Log the response for troubleshooting
       print('Weather data response status: ${response.statusCode}');
@@ -174,7 +174,7 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
             final longitude = double.tryParse(data['longitude'].toString());
 
             if (latitude != null && longitude != null) {
-              fetchWeatherInfo(streetName, latitude, longitude);
+              fetchWeatherInfo(streetName, cityName, countyName, latitude, longitude);
             } else {
               setState(() {
                 errorMessage = 'Invalid latitude or longitude format.';
@@ -192,9 +192,7 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
         }
       } else {
         setState(() {
-          errorMessage =
-          'Failed to fetch geolocation data. Status code: ${response
-              .statusCode}';
+          errorMessage = 'Failed to fetch geolocation data. Status code: ${response.statusCode}';
         });
       }
     } catch (error) {
@@ -204,12 +202,10 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
     }
   }
 
-  Future<void> fetchWeatherInfo(String streetName, double latitude,
-      double longitude) async {
+  Future<void> fetchWeatherInfo(String streetName, String cityName, String countyName, double latitude, double longitude) async {
     try {
       final response = await http.get(Uri.parse(
-          '${ApiConfig
-              .baseUrl}/json/road_features_with_weather?street_name=$streetName&latitude=$latitude&longitude=$longitude'));
+          '${ApiConfig.baseUrl}/json/road_features_with_weather?street_name=$streetName&city_name=$cityName&county_name=$countyName&latitude=$latitude&longitude=$longitude'));
 
       // Debug: Log the response for troubleshooting
       print('Weather info response status: ${response.statusCode}');
@@ -234,6 +230,7 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
       });
     }
   }
+
 
   Future<void> fetchPredictedSeverity(RoadFeatures roadFeatures) async {
     try {
@@ -313,6 +310,8 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
                   itemCount: filteredStreetNames.length,
                   itemBuilder: (context, index) {
                     final street = filteredStreetNames[index];
+                    final city = filteredStreetNames[index];
+                    final county = filteredStreetNames[index];
                     return ListTile(
                       title: Text(
                         street,
@@ -321,7 +320,7 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
                       tileColor: Colors.blueGrey[50],
                       onTap: () {
                         _streetNameController.clear();
-                        fetchWeatherData(street);
+                        fetchWeatherData(street, city, county);
                         setState(() {
                           filteredStreetNames = [];
                         });
