@@ -1,99 +1,123 @@
-// import 'package:flutter/material.dart';
-// import 'package:google_maps_flutter/google_maps_flutter.dart';
-// import 'package:google_maps_webservice/directions.dart';
-//
-// class RoutePage extends StatefulWidget {
-//   @override
-//   _RoutePageState createState() => _RoutePageState();
-// }
-//
-// class _RoutePageState extends State<RoutePage> {
-//   GoogleMapController? _mapController;
-//   LatLng _startLocation = LatLng(37.7749, -122.4194); // Example: San Francisco
-//   LatLng _endLocation = LatLng(34.0522, -118.2437); // Example: Los Angeles
-//   Set<Polyline> _polylines = Set<Polyline>();
-//
-//   GoogleMapsDirections directionsApi = GoogleMapsDirections(apiKey: 'YOUR_GOOGLE_MAPS_API_KEY');
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//     _getDirections();
-//   }
-//
-//   Future<void> _getDirections() async {
-//     DirectionsResponse response = await directionsApi.directions(
-//       Location(_startLocation.latitude, _startLocation.longitude),
-//       Location(_endLocation.latitude, _endLocation.longitude),
-//       travelMode: TravelMode.driving,
-//     );
-//
-//     if (response.status == 'OK') {
-//       final polylinePoints = _convertToLatLng(response.routes![0].overviewPolyline!.points);
-//       setState(() {
-//         _polylines.add(
-//           Polyline(
-//             polylineId: PolylineId('route'),
-//             points: polylinePoints,
-//             color: Colors.blue,
-//             width: 5,
-//           ),
-//         );
-//       });
-//     }
-//   }
-//
-//   List<LatLng> _convertToLatLng(String encodedPoly) {
-//     List<LatLng> points = [];
-//     int index = 0;
-//     int len = encodedPoly.length;
-//     int lat = 0;
-//     int lng = 0;
-//
-//     while (index < len) {
-//       int shift = 0;
-//       int result = 0;
-//       int byte;
-//       do {
-//         byte = encodedPoly.codeUnitAt(index++) - 63;
-//         result |= (byte & 0x1f) << shift;
-//         shift += 5;
-//       } while (byte >= 0x20);
-//       int dlat = (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
-//       lat += dlat;
-//
-//       shift = 0;
-//       result = 0;
-//       do {
-//         byte = encodedPoly.codeUnitAt(index++) - 63;
-//         result |= (byte & 0x1f) << shift;
-//         shift += 5;
-//       } while (byte >= 0x20);
-//       int dlng = (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
-//       lng += dlng;
-//
-//       points.add(LatLng(lat / 1E5, lng / 1E5));
-//     }
-//
-//     return points;
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text('Route Map'),
-//       ),
-//       body: GoogleMap(
-//         onMapCreated: (controller) {
-//           _mapController = controller;
-//         },
-//         initialCameraPosition: CameraPosition(
-//           target: _startLocation,
-//           zoom: 7.0,
-//         ),
-//         polylines: _polylines,
-//       ),
-//     );
-//   }
-// }
+import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+import '../../config.dart';
+
+class MapPage extends StatefulWidget {
+  final String startPoint;
+  final String endPoint;
+
+  MapPage({required this.startPoint, required this.endPoint});
+
+  @override
+  _MapPageState createState() => _MapPageState();
+}
+
+class _MapPageState extends State<MapPage> {
+  late GoogleMapController mapController;
+  late Set<Marker> _markers;
+  late Set<Polyline> _polylines;
+
+  // Initial camera position to center the map
+  static const CameraPosition _kInitialPosition = CameraPosition(
+    target: LatLng(37.7749, -122.4194), // Default to San Francisco
+    zoom: 10,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _markers = {};
+    _polylines = {};
+    _fetchRouteData();
+  }
+
+  // Fetch route data from the API
+  Future<void> _fetchRouteData() async {
+    final start = widget.startPoint.replaceAll(' ', '+');
+    final end = widget.endPoint.replaceAll(' ', '+');
+    final url = '${ApiConfig.baseUrl}/json/route?origin=$start&destination=$end';
+
+    final response = await http.get(Uri.parse(url));
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> routeData = json.decode(response.body);
+      List<dynamic> routePoints = routeData['route_points'];
+
+      // Create markers for start and end points
+      final startLatLng = LatLng(routeData['start_lat_lng']['lat'], routeData['start_lat_lng']['lng']);
+      final endLatLng = LatLng(routeData['end_lat_lng']['lat'], routeData['end_lat_lng']['lng']);
+
+      setState(() {
+        _markers.add(Marker(
+          markerId: MarkerId('start'),
+          position: startLatLng,
+          infoWindow: InfoWindow(title: widget.startPoint),
+        ));
+
+        _markers.add(Marker(
+          markerId: MarkerId('end'),
+          position: endLatLng,
+          infoWindow: InfoWindow(title: widget.endPoint),
+        ));
+
+        // Create polyline for the route
+        List<LatLng> polylinePoints = routePoints.map((point) {
+          return LatLng(point['lat'], point['lng']);
+        }).toList();
+
+        _polylines.add(Polyline(
+          polylineId: PolylineId('route'),
+          points: polylinePoints,
+          color: Colors.blue,
+          width: 5,
+        ));
+      });
+
+      // Move the camera to fit the route
+      mapController.animateCamera(CameraUpdate.newLatLngBounds(
+        LatLngBounds(
+          southwest: LatLng(
+            routeData['start_lat_lng']['lat'],
+            routeData['start_lat_lng']['lng'],
+          ),
+          northeast: LatLng(
+            routeData['end_lat_lng']['lat'],
+            routeData['end_lat_lng']['lng'],
+          ),
+        ),
+        50.0,
+      ));
+
+      print('Fetching route data...');
+      print('Route data loaded');
+      print('Animating camera...');
+
+    } else {
+      // Handle error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load route data')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Map View"),
+        backgroundColor: Colors.teal,
+      ),
+      body: GoogleMap(
+        initialCameraPosition: _kInitialPosition,
+        onMapCreated: (GoogleMapController controller) {
+          mapController = controller;
+        },
+        markers: _markers,
+        polylines: _polylines,
+      ),
+    );
+  }
+}
