@@ -115,11 +115,6 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
     try {
       final response = await http.get(
           Uri.parse('${ApiConfig.baseUrl}/json/street_names'));
-
-      // Debug: Log the response for troubleshooting
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
@@ -138,9 +133,11 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
     }
   }
   void handleStreetNameChange(String value) {
+
     setState(() {
       // Convert input to lowercase for case-insensitive comparison
       final lowerValue = value.toLowerCase();
+
 
       // Separate exact matches and partial matches
       final exactMatches = streetNames
@@ -152,6 +149,7 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
 
       // Combine exact matches first, followed by partial matches
       filteredStreetNames = [...exactMatches, ...partialMatches];
+      print('filse : ${filteredStreetNames}');
     });
   }
 
@@ -309,18 +307,21 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
                   shrinkWrap: true,
                   itemCount: filteredStreetNames.length,
                   itemBuilder: (context, index) {
-                    final street = filteredStreetNames[index];
-                    final city = filteredStreetNames[index];
-                    final county = filteredStreetNames[index];
+                    final streetData = filteredStreetNames[index];
+
+                    // Split the streetData into parts by comma
+                    final parts = streetData.split(',');
+
+                    // Ensure there are exactly three parts: street name, city, and county
+                    final street = parts.isNotEmpty ? parts[0].trim() : '';
+                    final city = parts.length > 1 ? parts[1].trim() : '';
+                    final county = parts.length > 2 ? parts[2].trim() : '';
                     return ListTile(
-                      title: Text(
-                        street,
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                      ),
+                      title: Text('$street,$city,$county', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),),
                       tileColor: Colors.blueGrey[50],
                       onTap: () {
                         _streetNameController.clear();
-                        fetchWeatherData(street, city, county);
+                        fetchWeatherData(street.toUpperCase(), city.toUpperCase(), county.toUpperCase());
                         setState(() {
                           filteredStreetNames = [];
                         });
@@ -337,7 +338,13 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
                   style: TextStyle(color: Colors.red, fontSize: 16),
                 ),
               ),
+
             if (weatherDataModel != null) ...[
+
+              // Text(
+              //   'Weather and Road data for ${filteredStreetNames.isNotEmpty ? filteredStreetNames.join(', ') : 'N/A'}',
+              //   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              // ),
               // Severity ListTile
               _buildInfoCard('Predicted Severity', predictedSeverity?.toString() ?? 'Loading...'),
 
