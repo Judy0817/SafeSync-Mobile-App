@@ -1,7 +1,8 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 import '../../config.dart';
 
@@ -16,107 +17,153 @@ class MapPage extends StatefulWidget {
 }
 
 class _MapPageState extends State<MapPage> {
-  late GoogleMapController mapController;
-  late Set<Marker> _markers;
-  late Set<Polyline> _polylines;
-
-  // Initial camera position to center the map
-  static const CameraPosition _kInitialPosition = CameraPosition(
-    target: LatLng(37.7749, -122.4194), // Default to San Francisco
-    zoom: 10,
+  Completer<GoogleMapController> _controller = Completer();
+  static final CameraPosition _kGoogle = const CameraPosition(
+    target: LatLng(40.7126819, -74.006577), // default to start location of New York
+    zoom: 14,
   );
+
+  final Set<Marker> _markers = {};
+  final Set<Polyline> _polyline = {};
+  List<LatLng> latLngPoints = [];
 
   @override
   void initState() {
     super.initState();
-    _markers = {};
-    _polylines = {};
     _fetchRouteData();
   }
 
-  // Fetch route data from the API
   Future<void> _fetchRouteData() async {
-    final start = widget.startPoint.replaceAll(' ', '+');
-    final end = widget.endPoint.replaceAll(' ', '+');
-    final url = '${ApiConfig.baseUrl}/json/route?origin=$start&destination=$end';
-
+    final url =
+        '${ApiConfig.baseUrl}/json/route?origin=${widget.startPoint}&destination=${widget.endPoint}';
     final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
-      Map<String, dynamic> routeData = json.decode(response.body);
-      List<dynamic> routePoints = routeData['route_points'];
+      final data = json.decode(response.body);
 
-      // Create markers for start and end points
-      final startLatLng = LatLng(routeData['start_lat_lng']['lat'], routeData['start_lat_lng']['lng']);
-      final endLatLng = LatLng(routeData['end_lat_lng']['lat'], routeData['end_lat_lng']['lng']);
+      List routePoints = data['route_points'];
+      print("Route Points: $routePoints");
 
-      setState(() {
-        _markers.add(Marker(
-          markerId: MarkerId('start'),
-          position: startLatLng,
-          infoWindow: InfoWindow(title: widget.startPoint),
-        ));
-
-        _markers.add(Marker(
-          markerId: MarkerId('end'),
-          position: endLatLng,
-          infoWindow: InfoWindow(title: widget.endPoint),
-        ));
-
-        // Create polyline for the route
-        List<LatLng> polylinePoints = routePoints.map((point) {
-          return LatLng(point['lat'], point['lng']);
-        }).toList();
-
-        _polylines.add(Polyline(
-          polylineId: PolylineId('route'),
-          points: polylinePoints,
-          color: Colors.blue,
-          width: 5,
-        ));
+      // Remove duplicates from the route points
+      Set<LatLng> uniquePoints = Set<LatLng>();
+      routePoints.forEach((point) {
+        uniquePoints.add(LatLng(point['lat'], point['lng']));
       });
 
-      // Move the camera to fit the route
-      mapController.animateCamera(CameraUpdate.newLatLngBounds(
-        LatLngBounds(
-          southwest: LatLng(
-            routeData['start_lat_lng']['lat'],
-            routeData['start_lat_lng']['lng'],
-          ),
-          northeast: LatLng(
-            routeData['end_lat_lng']['lat'],
-            routeData['end_lat_lng']['lng'],
-          ),
-        ),
-        50.0,
-      ));
+      setState(() {
+        latLngPoints = uniquePoints.toList();
+        print("Total Unique Route Points: ${latLngPoints.length}");
 
-      print('Fetching route data...');
-      print('Route data loaded');
-      print('Animating camera...');
+        // Fetch weather data for each point
+        _fetchWeatherForRoutePoints();
 
+        // Adding markers for the route points
+        for (int i = 0; i < latLngPoints.length; i++) {
+          _markers.add(
+            Marker(
+              markerId: MarkerId(i.toString()),
+              position: latLngPoints[i],
+              infoWindow: InfoWindow(
+                title: 'Point $i',
+                snippet: 'Lat: ${latLngPoints[i].latitude}, Lng: ${latLngPoints[i].longitude}',
+              ),
+              icon: BitmapDescriptor.defaultMarker,
+            ),
+          );
+        }
+
+        // Adding polyline for the route
+        _polyline.add(
+          Polyline(
+            polylineId: PolylineId('route'),
+            points: latLngPoints,
+            color: Colors.green,
+            width: 5,
+          ),
+        );
+
+        // Adjust camera position to fit the route bounds
+        _adjustCameraPosition();
+      });
     } else {
-      // Handle error
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load route data')),
-      );
+      throw Exception('Failed to load route data');
     }
+  }
+
+// Function to fetch weather data for each route point
+  Future<void> _fetchWeatherForRoutePoints() async {
+    for (var point in latLngPoints) {
+      // Replace with actual street name, city name, and county name dynamically
+      final streetName = 'Brice Rd';  // You can replace this dynamically
+      final cityName = 'Reynoldsburg';  // Replace with actual city name dynamically
+      final countyName = 'Franklin';  // Replace with actual county name dynamically
+
+      final url =
+          'http://localhost:8080/json/geolocation?street_name=$streetName&city_name=$cityName&county_name=$countyName';
+
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        final weatherData = json.decode(response.body);
+        double lat = double.parse(weatherData['latitude']);
+        double lng = double.parse(weatherData['longitude']);
+
+        print('Weather Data for Point - Lat: $lat, Lng: $lng');
+        // You can now use this data for your app, e.g., to display the weather info in a marker or other UI elements
+      } else {
+        print('Failed to load weather data for $streetName, $cityName');
+      }
+    }
+  }
+
+
+  // Adjust camera position to fit route
+  Future<void> _adjustCameraPosition() async {
+    if (latLngPoints.isEmpty) return;
+
+    double minLat = latLngPoints[0].latitude;
+    double maxLat = latLngPoints[0].latitude;
+    double minLng = latLngPoints[0].longitude;
+    double maxLng = latLngPoints[0].longitude;
+
+    for (var point in latLngPoints) {
+      if (point.latitude < minLat) minLat = point.latitude;
+      if (point.latitude > maxLat) maxLat = point.latitude;
+      if (point.longitude < minLng) minLng = point.longitude;
+      if (point.longitude > maxLng) maxLng = point.longitude;
+    }
+
+    final LatLngBounds bounds = LatLngBounds(
+      southwest: LatLng(minLat, minLng),
+      northeast: LatLng(maxLat, maxLng),
+    );
+
+    final GoogleMapController controller = await _controller.future;
+    controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, 100)); // Increased padding for better view
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Map View"),
-        backgroundColor: Colors.teal,
+        backgroundColor: Color(0xFF0F9D58),
+        title: Text("Route Map"),
       ),
-      body: GoogleMap(
-        initialCameraPosition: _kInitialPosition,
-        onMapCreated: (GoogleMapController controller) {
-          mapController = controller;
-        },
-        markers: _markers,
-        polylines: _polylines,
+      body: Container(
+        child: SafeArea(
+          child: GoogleMap(
+            initialCameraPosition: _kGoogle,
+            mapType: MapType.normal,
+            markers: _markers,
+            myLocationEnabled: true,
+            myLocationButtonEnabled: true,
+            compassEnabled: true,
+            polylines: _polyline,
+            onMapCreated: (GoogleMapController controller) {
+              _controller.complete(controller);
+            },
+          ),
+        ),
       ),
     );
   }
