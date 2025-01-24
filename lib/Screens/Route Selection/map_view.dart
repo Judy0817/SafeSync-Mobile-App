@@ -31,34 +31,57 @@ class _MapPageState extends State<MapPage> {
   void initState() {
     super.initState();
     _fetchRouteData();
+    _fetchRouteDataFromLocalServer();
   }
 
-  Future<void> _fetchRouteData() async {
+  Future<void> _fetchRouteDataFromLocalServer() async {
     final url =
         '${ApiConfig.baseUrl}/json/route?origin=${widget.startPoint}&destination=${widget.endPoint}';
+
     final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
 
-      List routePoints = data['route_points'];
-      print("Route Points: $routePoints");
-
-      // Remove duplicates from the route points
-      Set<LatLng> uniquePoints = Set<LatLng>();
-      routePoints.forEach((point) {
-        uniquePoints.add(LatLng(point['lat'], point['lng']));
-      });
+      List<dynamic> routePoints = data['route_points'];
+      List<LatLng> decodedPoints = routePoints
+          .map((point) => LatLng(point['lat'], point['lng']))
+          .toList();
 
       setState(() {
-        latLngPoints = uniquePoints.toList();
-        print("Total Unique Route Points: ${latLngPoints.length}");
+        latLngPoints = decodedPoints;
 
-        // Fetch weather data for each point
-        _fetchWeatherForRoutePoints();
+        // Add polyline to display the route
+        _polyline.add(
+          Polyline(
+            polylineId: PolylineId('route'),
+            points: latLngPoints,
+            color: Colors.blue,
+            width: 5,
+          ),
+        );
 
-        // Adding markers for the route points
-        for (int i = 0; i < latLngPoints.length; i++) {
+        // Add markers for start and end locations
+        _markers.add(
+          Marker(
+            markerId: MarkerId('start'),
+            position: LatLng(data['start_lat_lng']['lat'], data['start_lat_lng']['lng']),
+            infoWindow: InfoWindow(title: 'Start Location', snippet: data['start_location']),
+            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+          ),
+        );
+
+        _markers.add(
+          Marker(
+            markerId: MarkerId('end'),
+            position: LatLng(data['end_lat_lng']['lat'], data['end_lat_lng']['lng']),
+            infoWindow: InfoWindow(title: 'Destination', snippet: data['destination']),
+            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+          ),
+        );
+
+        // Add markers for each point along the route
+        for (int i = 1; i < latLngPoints.length -1; i++) {
           _markers.add(
             Marker(
               markerId: MarkerId(i.toString()),
@@ -67,55 +90,83 @@ class _MapPageState extends State<MapPage> {
                 title: 'Point $i',
                 snippet: 'Lat: ${latLngPoints[i].latitude}, Lng: ${latLngPoints[i].longitude}',
               ),
-              icon: BitmapDescriptor.defaultMarker,
+              icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
             ),
           );
         }
 
-        // Adding polyline for the route
-        _polyline.add(
-          Polyline(
-            polylineId: PolylineId('route'),
-            points: latLngPoints,
-            color: Colors.green,
-            width: 5,
-          ),
-        );
-
-        // Adjust camera position to fit the route bounds
         _adjustCameraPosition();
       });
+    } else {
+      throw Exception('Failed to load route data from local server');
+    }
+  }
+
+
+  Future<void> _fetchRouteData() async {
+    final url =
+        'https://maps.googleapis.com/maps/api/directions/json?origin=${widget.startPoint}&destination=${widget.endPoint}&key=';
+
+    final response = await http.get(Uri.parse(url));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+
+      if (data['status'] == 'OK') {
+        List<LatLng> decodedPoints = _decodePolyline(data['routes'][0]['overview_polyline']['points']);
+
+        setState(() {
+          latLngPoints = decodedPoints;
+
+          _polyline.add(
+            Polyline(
+              polylineId: PolylineId('route'),
+              points: latLngPoints,
+              color: Colors.blue,
+              width: 5,
+            ),
+          );
+
+          _adjustCameraPosition();
+        });
+      } else {
+        print("Error fetching route: ${data['status']}");
+      }
     } else {
       throw Exception('Failed to load route data');
     }
   }
 
-// Function to fetch weather data for each route point
-  Future<void> _fetchWeatherForRoutePoints() async {
-    for (var point in latLngPoints) {
-      // Replace with actual street name, city name, and county name dynamically
-      final streetName = 'Brice Rd';  // You can replace this dynamically
-      final cityName = 'Reynoldsburg';  // Replace with actual city name dynamically
-      final countyName = 'Franklin';  // Replace with actual county name dynamically
+// Function to decode Google Polyline to LatLng points
+  List<LatLng> _decodePolyline(String encoded) {
+    List<LatLng> polylineCoordinates = [];
+    int index = 0, len = encoded.length;
+    int lat = 0, lng = 0;
 
-      final url =
-          'http://localhost:8080/json/geolocation?street_name=$streetName&city_name=$cityName&county_name=$countyName';
+    while (index < len) {
+      int b, shift = 0, result = 0;
+      do {
+        b = encoded.codeUnitAt(index++) - 63;
+        result |= (b & 0x1F) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      int deltaLat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+      lat += deltaLat;
 
-      final response = await http.get(Uri.parse(url));
+      shift = 0;
+      result = 0;
+      do {
+        b = encoded.codeUnitAt(index++) - 63;
+        result |= (b & 0x1F) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      int deltaLng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+      lng += deltaLng;
 
-      if (response.statusCode == 200) {
-        final weatherData = json.decode(response.body);
-        double lat = double.parse(weatherData['latitude']);
-        double lng = double.parse(weatherData['longitude']);
-
-        print('Weather Data for Point - Lat: $lat, Lng: $lng');
-        // You can now use this data for your app, e.g., to display the weather info in a marker or other UI elements
-      } else {
-        print('Failed to load weather data for $streetName, $cityName');
-      }
+      polylineCoordinates.add(LatLng(lat / 1E5, lng / 1E5));
     }
+    return polylineCoordinates;
   }
-
 
   // Adjust camera position to fit route
   Future<void> _adjustCameraPosition() async {
