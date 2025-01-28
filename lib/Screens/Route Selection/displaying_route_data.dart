@@ -110,8 +110,7 @@ class _ResultPageState extends State<ResultPage> {
                     SizedBox(height: 30),
                     _buildRouteDetail('Distance:', _distance ?? 'Loading...'),
                     _buildRouteDetail('Duration:', _duration ?? 'Loading...'),
-                    SizedBox(height: 20),
-                    _buildRouteDetail('Seveirity:', _duration ?? 'Loading...'),
+
                     SizedBox(height: 30),
                     ElevatedButton(
                       onPressed: () {

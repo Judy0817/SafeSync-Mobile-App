@@ -27,13 +27,15 @@ class _MapPageState extends State<MapPage> {
   final Set<Polyline> _polyline = {};
   List<LatLng> latLngPoints = [];
   List<int> _severityList = []; // List to store severity values
+  double _averageSeverity = 0;
 
 
   @override
   void initState() {
     super.initState();
-    _fetchRouteData();
     _fetchRouteDataFromLocalServer();
+    _fetchRouteData();
+
 
   }
 
@@ -87,7 +89,6 @@ class _MapPageState extends State<MapPage> {
         // Add markers for each point along the route
         for (int i = 1; i < latLngPoints.length - 1; i++) {
           _addWeatherAndRoadDataToMarker(latLngPoints[i], i);
-          print('test');
         }
 
         _adjustCameraPosition();
@@ -96,6 +97,10 @@ class _MapPageState extends State<MapPage> {
       throw Exception('Failed to load route data from local server');
     }
   }
+
+
+  double _sumSeverity = 0; // To store the sum of all severity values
+  int _totalPoints = 0;    // To count the total number of points
 
   Future<void> _addWeatherAndRoadDataToMarker(LatLng point, int markerId) async {
     // Fetch nearby road info (street name, city, county)
@@ -113,7 +118,7 @@ class _MapPageState extends State<MapPage> {
         final capitalizedCityName = roadData['city'].toUpperCase();
         final capitalizedCountyName = roadData['county'].toUpperCase();
 
-        // Fetch weather and road features data using street, city, county, and point lat/lon
+        // Fetch weather and road features data
         final weatherAndRoadUrl =
             '${ApiConfig.baseUrl}/json/road_features_with_weather?street_name=$capitalizedStreetName&city_name=$capitalizedCityName&county_name=$capitalizedCountyName&latitude=${point.latitude}&longitude=${point.longitude}';
 
@@ -122,11 +127,17 @@ class _MapPageState extends State<MapPage> {
         if (weatherAndRoadResponse.statusCode == 200) {
           final weatherAndRoadData = json.decode(weatherAndRoadResponse.body);
 
-          // Now calculate severity based on weather and road data
+          // Calculate severity for this point
           final severity = await _calculateSeverity(
             weatherAndRoadData['weather'],
             weatherAndRoadData['road_features'],
           );
+
+          // Update sumSeverity and totalPoints
+          _sumSeverity += severity;
+          _totalPoints++;
+          print('severity sum = $_sumSeverity');
+          print('severity sum = $_totalPoints');
 
           // Add marker
           _markers.add(
@@ -155,6 +166,7 @@ class _MapPageState extends State<MapPage> {
       print('Failed to fetch nearby road info');
     }
   }
+
 
   Future<int> _calculateSeverity(dynamic weatherCondition, dynamic roadFeatures) async {
     final severityUrl = '${ApiConfig.baseUrl}/json/calculate_severity?' +
@@ -208,27 +220,15 @@ class _MapPageState extends State<MapPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                _buildInfoRow('Street', streetName),
-                _buildInfoRow('City', cityName),
-                _buildInfoRow('County', countyName),
-                SizedBox(height: 16),
                 Text(
                   'Calculated Severity: $severity',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.red),
                 ),
-                SizedBox(height: 16),
-                Text(
-                  'Weather Condition:',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
+
                 _buildWeatherInfo(weatherCondition),
-                SizedBox(height: 16),
-                Text(
-                  'Road Features:',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
+
                 _buildRoadFeatures(roadFeatures),
-                SizedBox(height: 16),
+
 
               ],
             ),
@@ -255,42 +255,123 @@ class _MapPageState extends State<MapPage> {
       ),
     );
   }
-
   Widget _buildWeatherInfo(dynamic weatherCondition) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        _buildInfoRow('Weather', weatherCondition['weather'] ?? 'N/A'),
-        _buildInfoRow('Temperature (°F)', weatherCondition['temperature(F)'] ?? 'N/A'),
-        _buildInfoRow('Humidity (%)', weatherCondition['humidity(%)'] ?? 'N/A'),
-        _buildInfoRow('Precipitation (in)', weatherCondition['precipitation(in)'] ?? 'N/A'),
-        _buildInfoRow('Pressure (in)', weatherCondition['pressure(in)'] ?? 'N/A'),
-        _buildInfoRow('Wind Chill (°F)', weatherCondition['wind_chill(F)'] ?? 'N/A'),
-        _buildInfoRow('Wind Speed (mph)', weatherCondition['wind_speed(mph)'] ?? 'N/A'),
-        _buildInfoRow('Visibility (mi)', weatherCondition['visibility(mi)'] ?? 'N/A'),
-        _buildInfoRow('Wind Direction', weatherCondition['wind_direction'] ?? 'N/A'),
-      ],
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Card(
+        elevation: 4,
+        color: Colors.lightBlue[50], // Light background color
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              // Weather Condition Title
+              Text(
+                'Weather Information',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue[800],
+                ),
+              ),
+              const Divider(color: Colors.grey),
+
+              // Display weather details with icons and more styled rows
+              _buildWeatherInfoRow('Weather', weatherCondition['weather'] ?? 'N/A', Icons.cloud),
+              _buildWeatherInfoRow('Temperature (°F)', weatherCondition['temperature(F)'] ?? 'N/A', Icons.thermostat),
+              _buildWeatherInfoRow('Humidity (%)', weatherCondition['humidity(%)'] ?? 'N/A', Icons.water_drop),
+              _buildWeatherInfoRow('Precipitation (in)', weatherCondition['precipitation(in)'] ?? 'N/A', Icons.invert_colors),
+              _buildWeatherInfoRow('Pressure (in)', weatherCondition['pressure(in)'] ?? 'N/A', Icons.speed),
+              _buildWeatherInfoRow('Wind Chill (°F)', weatherCondition['wind_chill(F)'] ?? 'N/A', Icons.ac_unit),
+              _buildWeatherInfoRow('Wind Speed (mph)', weatherCondition['wind_speed(mph)'] ?? 'N/A', Icons.air),
+              _buildWeatherInfoRow('Visibility (mi)', weatherCondition['visibility(mi)'] ?? 'N/A', Icons.visibility),
+              _buildWeatherInfoRow('Wind Direction', weatherCondition['wind_direction'] ?? 'N/A', Icons.navigation),
+            ],
+          ),
+        ),
+      ),
     );
   }
+
+  Widget _buildWeatherInfoRow(String label, String value, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.blue[600]),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              '$label: $value',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.black87),
+              overflow: TextOverflow.ellipsis, // In case the value is too long
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   Widget _buildRoadFeatures(dynamic roadFeatures) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        _buildInfoRow('Bump', roadFeatures['bump'] ? 'Yes' : 'No'),
-        _buildInfoRow('Crossing', roadFeatures['crossing'] ? 'Yes' : 'No'),
-        _buildInfoRow('Give Way', roadFeatures['give_way'] ? 'Yes' : 'No'),
-        _buildInfoRow('Junction', roadFeatures['junction'] ? 'Yes' : 'No'),
-        _buildInfoRow('No Exit', roadFeatures['no_exit'] ? 'Yes' : 'No'),
-        _buildInfoRow('Railway', roadFeatures['railway'] ? 'Yes' : 'No'),
-        _buildInfoRow('Roundabout', roadFeatures['roundabout'] ? 'Yes' : 'No'),
-        _buildInfoRow('Station', roadFeatures['station'] ? 'Yes' : 'No'),
-        _buildInfoRow('Stop', roadFeatures['stop'] ? 'Yes' : 'No'),
-        _buildInfoRow('Traffic Calming', roadFeatures['traffic_calming'] ? 'Yes' : 'No'),
-        _buildInfoRow('Traffic Signal', roadFeatures['traffic_signal'] ? 'Yes' : 'No'),
-      ],
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header for the section
+            Text(
+              'Road Features',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.teal,
+              ),
+            ),
+            const Divider(color: Colors.grey),
+            // Features list
+            Wrap(
+              spacing: 16,
+              runSpacing: 1,
+              children: roadFeatures.entries.map<Widget>((entry) {
+                return _buildFeatureChip(entry.key, entry.value);
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
     );
   }
+
+  Widget _buildFeatureChip(String feature, bool value) {
+    // Format the feature name (e.g., "Give Way" instead of "give_way")
+    String formattedFeature = feature
+        .replaceAll('_', ' ')
+        .split(' ')
+        .map((word) => word[0].toUpperCase() + word.substring(1))
+        .join(' ');
+
+    return Chip(
+      avatar: Icon(
+        value ? Icons.check_circle : Icons.cancel,
+        color: value ? Colors.green : Colors.red,
+        size: 20,
+      ),
+      label: Text(
+        formattedFeature,
+        style: const TextStyle(fontSize: 14, color: Colors.black),
+      ),
+      backgroundColor: Colors.grey[200],
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+    );
+  }
+
 
   String _convertWeatherToString(dynamic weather) {
     // Handle conversion of weather conditions
@@ -399,19 +480,33 @@ class _MapPageState extends State<MapPage> {
     );
 
     final GoogleMapController controller = await _controller.future;
-    controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, 100)); // Increased padding for better view
+    controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, 30)); // Increased padding for better view
   }
 
+
+  void _updateAverageSeverity() {
+    if (_totalPoints > 0) {
+      setState(() {
+        _averageSeverity = _sumSeverity / _totalPoints;
+      });
+    } else {
+      setState(() {
+        print('errorrrrrrrrrrrrrr');
+        _averageSeverity = 0; // No points processed
+      });
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xFF0F9D58),
-        title: Text("Route Map"),
+        backgroundColor: const Color(0xFF0F9D58),
+        title: const Text("Route Map"),
       ),
-      body: Container(
-        child: SafeArea(
-          child: GoogleMap(
+      body: Stack(
+        children: [
+          // Google Map
+          GoogleMap(
             initialCameraPosition: _kGoogle,
             mapType: MapType.normal,
             markers: _markers,
@@ -423,10 +518,50 @@ class _MapPageState extends State<MapPage> {
               _controller.complete(controller);
             },
           ),
-        ),
+
+          // Average Severity Display (Overlayed on Map)
+          Positioned(
+            top: 20,
+            left: 20,
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.warning, color: Colors.orange),
+                  const SizedBox(width: 8),
+                  Text(
+                    _averageSeverity != 0
+                        ? "Average Severity : ${_averageSeverity!.toStringAsFixed(2)}"
+                        : "Average Severity : Loading...",
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+
+      // Floating Action Button to Recalculate Average Severity
+      floatingActionButton: FloatingActionButton(
+        onPressed: _updateAverageSeverity,
+        backgroundColor: const Color(0xFF0F9D58),
+        child: const Icon(Icons.refresh),
       ),
     );
   }
 }
-
-
