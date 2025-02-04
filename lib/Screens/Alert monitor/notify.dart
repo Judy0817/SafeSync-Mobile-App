@@ -132,12 +132,11 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
       });
     }
   }
-  void handleStreetNameChange(String value) {
 
+  void handleStreetNameChange(String value) {
     setState(() {
       // Convert input to lowercase for case-insensitive comparison
       final lowerValue = value.toLowerCase();
-
 
       // Separate exact matches and partial matches
       final exactMatches = streetNames
@@ -149,9 +148,9 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
 
       // Combine exact matches first, followed by partial matches
       filteredStreetNames = [...exactMatches, ...partialMatches];
-      print('filse : ${filteredStreetNames}');
     });
   }
+
 
 
   Future<void> fetchWeatherData(String streetName, String cityName, String countyName) async {
@@ -283,7 +282,7 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Weather and Road Data', style: TextStyle(fontSize: 20)),
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Colors.teal,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
@@ -295,15 +294,26 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
               decoration: InputDecoration(
                 hintText: 'Enter street name',
                 border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.search),
+                prefixIcon: Icon(Icons.search), // Existing search icon
+                suffixIcon: IconButton(
+                  icon: Icon(Icons.arrow_forward), // Arrow icon
+                  onPressed: () {
+                    // Action when the arrow button is pressed
+                    handleStreetNameChange(_streetNameController.text); // You can add a custom action here
+                    FocusScope.of(context).unfocus(); // This dismisses the keyboard after the button is pressed
+                  },
+                ),
               ),
               onChanged: handleStreetNameChange,
+
             ),
+
             SizedBox(height: 15),
             if (filteredStreetNames.isNotEmpty)
+
               Container(
                 height: 200,
-                child: ListView.builder(
+                child:ListView.builder(
                   shrinkWrap: true,
                   itemCount: filteredStreetNames.length,
                   itemBuilder: (context, index) {
@@ -316,19 +326,29 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
                     final street = parts.isNotEmpty ? parts[0].trim() : '';
                     final city = parts.length > 1 ? parts[1].trim() : '';
                     final county = parts.length > 2 ? parts[2].trim() : '';
-                    return ListTile(
-                      title: Text('$street,$city,$county', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),),
-                      tileColor: Colors.blueGrey[50],
-                      onTap: () {
-                        _streetNameController.clear();
-                        fetchWeatherData(street.toUpperCase(), city.toUpperCase(), county.toUpperCase());
-                        setState(() {
-                          filteredStreetNames = [];
-                        });
-                      },
+
+                    return Column(
+                      children: [
+                        ListTile(
+                          title: Text(
+                            '$street, $city, $county',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                          ),
+                          tileColor: Colors.blueGrey[50],
+                          onTap: () {
+                            _streetNameController.clear();
+                            fetchWeatherData(street.toUpperCase(), city.toUpperCase(), county.toUpperCase());
+                            setState(() {
+                              filteredStreetNames = [];
+                            });
+
+                          },
+                        ),
+                      ],
                     );
                   },
-                ),
+                )
+
               ),
             if (errorMessage.isNotEmpty)
               Padding(
@@ -409,15 +429,16 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('Condition: ${weatherDataModel!.condition}'),
-                Text('Temperature: ${weatherDataModel!.temperature}°F'),
-                Text('Wind Chill: ${weatherDataModel!.windChill}°F'),
-                Text('Humidity: ${weatherDataModel!.humidity}%'),
-                Text('Pressure: ${weatherDataModel!.pressure} in'),
-                Text('Visibility: ${weatherDataModel!.visibility} mi'),
-                Text('Wind Direction: ${weatherDataModel!.windDirection}'),
-                Text('Wind Speed: ${weatherDataModel!.windSpeed} mph'),
-                Text('Precipitation: ${weatherDataModel!.precipitation} in'),
+                // Wrap the weather data rows in the same layout style
+                _buildWeatherInfoRow('Condition', weatherDataModel!.condition ?? 'N/A', Icons.cloud),
+                _buildWeatherInfoRow('Temperature', '${weatherDataModel!.temperature}°F', Icons.thermostat),
+                _buildWeatherInfoRow('Wind Chill', '${weatherDataModel!.windChill}°F', Icons.ac_unit),
+                _buildWeatherInfoRow('Humidity', '${weatherDataModel!.humidity}%', Icons.water_drop),
+                _buildWeatherInfoRow('Pressure', '${weatherDataModel!.pressure} in', Icons.speed),
+                _buildWeatherInfoRow('Visibility', '${weatherDataModel!.visibility} mi', Icons.visibility),
+                _buildWeatherInfoRow('Wind Direction', weatherDataModel!.windDirection ?? 'N/A', Icons.navigation),
+                _buildWeatherInfoRow('Wind Speed', '${weatherDataModel!.windSpeed} mph', Icons.air),
+                _buildWeatherInfoRow('Precipitation', '${weatherDataModel!.precipitation} in', Icons.invert_colors),
               ],
             ),
           ),
@@ -434,6 +455,26 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
     );
   }
 
+  Widget _buildWeatherInfoRow(String label, String value, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.blue[600]),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              '$label: $value',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.black87),
+              overflow: TextOverflow.ellipsis, // In case the value is too long
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
   void _showRoadDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -443,16 +484,17 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('Crossings: ${weatherDataModel!.roadFeatures.crossings ? 'Yes' : 'No'}'),
-                Text('Bump: ${weatherDataModel!.roadFeatures.speedBumps ? 'Yes' : 'No'}'),
-                Text('Junction: ${weatherDataModel!.roadFeatures.junction ? 'Yes' : 'No'}'),
-                Text('Railway: ${weatherDataModel!.roadFeatures.railway ? 'Yes' : 'No'}'),
-                Text('Traffic Signal: ${weatherDataModel!.roadFeatures.trafficSignal ? 'Yes' : 'No'}'),
-                Text('Give Way: ${weatherDataModel!.roadFeatures.giveWay ? 'Yes' : 'No'}'),
-                Text('No Exit: ${weatherDataModel!.roadFeatures.noExit ? 'Yes' : 'No'}'),
-                Text('Roundabout: ${weatherDataModel!.roadFeatures.roundabout ? 'Yes' : 'No'}'),
-                Text('Station: ${weatherDataModel!.roadFeatures.station ? 'Yes' : 'No'}'),
-                Text('Stop: ${weatherDataModel!.roadFeatures.stop ? 'Yes' : 'No'}'),
+                // Using Wrap to display the road features in a chip-like layout
+                _buildRoadFeatureChip('Crossings', weatherDataModel!.roadFeatures.crossings),
+                _buildRoadFeatureChip('Bump', weatherDataModel!.roadFeatures.speedBumps),
+                _buildRoadFeatureChip('Junction', weatherDataModel!.roadFeatures.junction),
+                _buildRoadFeatureChip('Railway', weatherDataModel!.roadFeatures.railway),
+                _buildRoadFeatureChip('Traffic Signal', weatherDataModel!.roadFeatures.trafficSignal),
+                _buildRoadFeatureChip('Give Way', weatherDataModel!.roadFeatures.giveWay),
+                _buildRoadFeatureChip('No Exit', weatherDataModel!.roadFeatures.noExit),
+                _buildRoadFeatureChip('Roundabout', weatherDataModel!.roadFeatures.roundabout),
+                _buildRoadFeatureChip('Station', weatherDataModel!.roadFeatures.station),
+                _buildRoadFeatureChip('Stop', weatherDataModel!.roadFeatures.stop),
               ],
             ),
           ),
@@ -468,5 +510,31 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
       },
     );
   }
+
+  Widget _buildRoadFeatureChip(String feature, bool value) {
+    // Format the feature name (e.g., "Give Way" instead of "give_way")
+    String formattedFeature = feature
+        .replaceAll('_', ' ')
+        .split(' ')
+        .map((word) => word[0].toUpperCase() + word.substring(1))
+        .join(' ');
+
+    return Chip(
+      avatar: Icon(
+        value ? Icons.check_circle : Icons.cancel,
+        color: value ? Colors.green : Colors.red,
+        size: 20,
+      ),
+      label: Text(
+        formattedFeature,
+        style: const TextStyle(fontSize: 14, color: Colors.black),
+      ),
+      backgroundColor: Colors.grey[200],
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+    );
+  }
+
 
 }

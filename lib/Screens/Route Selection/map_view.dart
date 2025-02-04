@@ -491,7 +491,7 @@ class _MapPageState extends State<MapPage> {
       });
     } else {
       setState(() {
-        print('errorrrrrrrrrrrrrr');
+
         _averageSeverity = 0; // No points processed
       });
     }
@@ -500,7 +500,7 @@ class _MapPageState extends State<MapPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F9D58),
+        backgroundColor: Colors.teal,
         title: const Text("Route Map"),
       ),
       body: Stack(
@@ -537,19 +537,27 @@ class _MapPageState extends State<MapPage> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.warning, color: Colors.orange),
+                  Icon(
+                    Icons.warning,
+                    color: (_averageSeverity != null && _averageSeverity! > 2)
+                        ? Colors.red // Warning color
+                        : Colors.green, // Normal color
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     _averageSeverity != 0
                         ? "Average Severity : ${_averageSeverity!.toStringAsFixed(2)}"
                         : "Average Severity : Loading...",
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      color: (_averageSeverity != null && _averageSeverity! > 2)
+                          ? Colors.red // Warning color
+                          : Colors.green, // Normal color
                     ),
                   ),
                 ],
+
               ),
             ),
           ),
