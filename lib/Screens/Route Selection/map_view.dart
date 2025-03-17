@@ -220,7 +220,7 @@ class _MapPageState extends State<MapPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  'Calculated Severity: $severity',
+                  'Calculated Severity: ${severity.toStringAsFixed(3)}',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.red),
                 ),
 
@@ -479,7 +479,7 @@ class _MapPageState extends State<MapPage> {
                   const SizedBox(width: 8),
                   Text(
                     _averageSeverity != 0
-                        ? "Average Severity : ${_averageSeverity!.toStringAsFixed(6)}"
+                        ? "Average Severity : ${_averageSeverity!.toStringAsFixed(3)}"
                         : "Average Severity : Loading...",
                     style: TextStyle(
                       fontSize: 16,

@@ -366,7 +366,7 @@ class _StreetAlertSearchState extends State<StreetAlertSearch> {
               //   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               // ),
               // Severity ListTile
-              _buildInfoCard('Predicted Severity', predictedSeverity?.toString() ?? 'Loading...'),
+              _buildInfoCard('Predicted Severity', predictedSeverity?.toStringAsFixed(3)  ?? 'Loading...'),
 
               // Weather Data ListTile
               _buildInfoCard('Weather Data', 'Condition: ${weatherDataModel!.condition}, Temp: ${weatherDataModel!.temperature}°F, Wind Chill: ${weatherDataModel!.windChill}°F', onTap: () => _showWeatherDialog(context)),
