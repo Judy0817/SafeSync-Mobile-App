@@ -34,9 +34,6 @@ class _MapPageState extends State<MapPage> {
   void initState() {
     super.initState();
     _fetchRouteDataFromLocalServer();
-    _fetchRouteData();
-
-
   }
 
 
@@ -99,8 +96,8 @@ class _MapPageState extends State<MapPage> {
   }
 
 
-  double _sumSeverity = 0; // To store the sum of all severity values
-  int _totalPoints = 0;    // To count the total number of points
+  double _sumSeverity = 0.0; // To store the sum of all severity values
+  int _totalPoints = 0;      // To count the total number of points
 
   Future<void> _addWeatherAndRoadDataToMarker(LatLng point, int markerId) async {
     // Fetch nearby road info (street name, city, county)
@@ -128,7 +125,7 @@ class _MapPageState extends State<MapPage> {
           final weatherAndRoadData = json.decode(weatherAndRoadResponse.body);
 
           // Calculate severity for this point
-          final severity = await _calculateSeverity(
+          final double severity = await _calculateSeverity(
             weatherAndRoadData['weather'],
             weatherAndRoadData['road_features'],
           );
@@ -137,7 +134,7 @@ class _MapPageState extends State<MapPage> {
           _sumSeverity += severity;
           _totalPoints++;
           print('severity sum = $_sumSeverity');
-          print('severity sum = $_totalPoints');
+          print('total points = $_totalPoints');
 
           // Add marker
           _markers.add(
@@ -168,7 +165,8 @@ class _MapPageState extends State<MapPage> {
   }
 
 
-  Future<int> _calculateSeverity(dynamic weatherCondition, dynamic roadFeatures) async {
+
+  Future<double> _calculateSeverity(dynamic weatherCondition, dynamic roadFeatures) async {
     final severityUrl = '${ApiConfig.baseUrl}/json/calculate_severity?' +
         'temperature=${weatherCondition['temperature(F)']}&' +
         'pressure=${weatherCondition['pressure(in)']}&' +
@@ -191,12 +189,13 @@ class _MapPageState extends State<MapPage> {
 
     if (severityResponse.statusCode == 200) {
       final severityData = json.decode(severityResponse.body);
-      return severityData['severity'] ?? 0;
+      return (severityData['severity'] as num?)?.toDouble() ?? 0.0;
     } else {
       print('Failed to calculate severity');
-      return 0; // Default severity value in case of failure
+      return 0.0; // Default severity value in case of failure
     }
   }
+
 
   void _showWeatherAndRoadInfoDialog(
       BuildContext context,
@@ -205,7 +204,7 @@ class _MapPageState extends State<MapPage> {
       String countyName,
       dynamic weatherCondition,  // Changed to dynamic
       dynamic roadFeatures,      // Changed to dynamic
-      int severity,             // Added severity parameter
+      double severity,             // Added severity parameter
       ) {
     // Convert weatherCondition and roadFeatures to strings
     String weatherConditionStr = _convertWeatherToString(weatherCondition);
@@ -390,74 +389,6 @@ class _MapPageState extends State<MapPage> {
     return 'Unknown road features';
   }
 
-
-
-
-  Future<void> _fetchRouteData() async {
-    final url =
-        'https://maps.googleapis.com/maps/api/directions/json?origin=${widget.startPoint}&destination=${widget.endPoint}&key=';
-
-    final response = await http.get(Uri.parse(url));
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-
-      if (data['status'] == 'OK') {
-        List<LatLng> decodedPoints = _decodePolyline(data['routes'][0]['overview_polyline']['points']);
-
-        setState(() {
-          latLngPoints = decodedPoints;
-
-          _polyline.add(
-            Polyline(
-              polylineId: PolylineId('route'),
-              points: latLngPoints,
-              color: Colors.blue,
-              width: 5,
-            ),
-          );
-
-          _adjustCameraPosition();
-        });
-      } else {
-        print("Error fetching route: ${data['status']}");
-      }
-    } else {
-      throw Exception('Failed to load route data');
-    }
-  }
-
-// Function to decode Google Polyline to LatLng points
-  List<LatLng> _decodePolyline(String encoded) {
-    List<LatLng> polylineCoordinates = [];
-    int index = 0, len = encoded.length;
-    int lat = 0, lng = 0;
-
-    while (index < len) {
-      int b, shift = 0, result = 0;
-      do {
-        b = encoded.codeUnitAt(index++) - 63;
-        result |= (b & 0x1F) << shift;
-        shift += 5;
-      } while (b >= 0x20);
-      int deltaLat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
-      lat += deltaLat;
-
-      shift = 0;
-      result = 0;
-      do {
-        b = encoded.codeUnitAt(index++) - 63;
-        result |= (b & 0x1F) << shift;
-        shift += 5;
-      } while (b >= 0x20);
-      int deltaLng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
-      lng += deltaLng;
-
-      polylineCoordinates.add(LatLng(lat / 1E5, lng / 1E5));
-    }
-    return polylineCoordinates;
-  }
-
   // Adjust camera position to fit route
   Future<void> _adjustCameraPosition() async {
     if (latLngPoints.isEmpty) return;
@@ -488,10 +419,12 @@ class _MapPageState extends State<MapPage> {
     if (_totalPoints > 0) {
       setState(() {
         _averageSeverity = _sumSeverity / _totalPoints;
+        print("Average : $_averageSeverity");
       });
     } else {
+      print(_totalPoints);
+      print(" judy 2");
       setState(() {
-
         _averageSeverity = 0; // No points processed
       });
     }
@@ -546,7 +479,7 @@ class _MapPageState extends State<MapPage> {
                   const SizedBox(width: 8),
                   Text(
                     _averageSeverity != 0
-                        ? "Average Severity : ${_averageSeverity!.toStringAsFixed(2)}"
+                        ? "Average Severity : ${_averageSeverity!.toStringAsFixed(6)}"
                         : "Average Severity : Loading...",
                     style: TextStyle(
                       fontSize: 16,
